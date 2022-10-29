@@ -1,5 +1,8 @@
 package com.lkd.common;
 
+/**
+ * 售货机info
+ */
 public class VMSystem {
     /**
      * 售货机状态：未投放

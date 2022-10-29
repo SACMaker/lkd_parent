@@ -4,6 +4,7 @@ import lombok.Data;
 
 /**
  * JWT令牌包装对象
+ *
  */
 @Data
 public class TokenObject{

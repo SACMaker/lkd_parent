@@ -2,6 +2,9 @@ package com.lkd.http.viewModel;
 
 import lombok.Data;
 
+/**
+ * 封装响应类-VO
+ */
 @Data
 public class LoginResp{
     private long userId;

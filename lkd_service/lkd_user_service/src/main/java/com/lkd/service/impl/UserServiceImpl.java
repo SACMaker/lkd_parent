@@ -91,7 +91,6 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
         LoginResp resp = new LoginResp();
         resp.setSuccess(false);
         resp.setMsg("不存在该账户");
-
         return resp;
     }
 
@@ -175,7 +174,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
     }
 
     /**
-     * 管理员登录
+     * 服务层管理员登录
      * @param req
      * @return
      * @throws IOException
@@ -183,6 +182,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
     private LoginResp adminLogin(LoginReq req) throws IOException {
         LoginResp resp = new LoginResp();
         resp.setSuccess(false);
+        //校验验证码账号密码
         String code =redisTemplate.boundValueOps(req.getClientToken()).get();
         if(Strings.isNullOrEmpty(code)){
             resp.setMsg("验证码错误");
@@ -193,8 +193,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
             return resp;
         }
         QueryWrapper<UserEntity> qw = new QueryWrapper<>();
-        qw.lambda()
-                .eq(UserEntity::getLoginName,req.getLoginName());
+        qw.lambda().eq(UserEntity::getLoginName,req.getLoginName());
         UserEntity userEntity = this.getOne(qw);
         if(userEntity == null){
             resp.setMsg("账户名或密码错误");
@@ -209,6 +208,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
     }
 
     /**
+     * 服务层
      * 登录成功签发token
      * @param userEntity
      * @param loginType
@@ -227,14 +227,15 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
         tokenObject.setUserId(userEntity.getId());
         tokenObject.setMobile(userEntity.getMobile());
         tokenObject.setLoginType(loginType);
+        //生成JWT
         String token = JWTUtil.createJWTByObj(tokenObject,userEntity.getMobile() + VMSystem.JWT_SECRET);
         resp.setToken(token);
         return resp;
-
     }
 
 
     /**
+     * 服务层
      * 运维运营人员登录
      * @param req
      * @return
@@ -243,6 +244,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
     private LoginResp empLogin(LoginReq req) throws IOException {
         LoginResp resp = new LoginResp();
         resp.setSuccess(false);
+        //校验手机验证码
         String code =redisTemplate.boundValueOps(req.getMobile()).get();
         if(Strings.isNullOrEmpty(code)){
             resp.setMsg("验证码错误");
@@ -254,8 +256,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
         }
 
         QueryWrapper<UserEntity> qw = new QueryWrapper<>();
-        qw.lambda()
-                .eq(UserEntity::getMobile, req.getMobile());
+        qw.lambda().eq(UserEntity::getMobile, req.getMobile());
         UserEntity userEntity = this.getOne(qw);
         if (userEntity == null){
             resp.setMsg("不存在该账户");
@@ -263,5 +264,4 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
         }
         return okResp( userEntity,VMSystem.LOGIN_EMP );
     }
-
 }

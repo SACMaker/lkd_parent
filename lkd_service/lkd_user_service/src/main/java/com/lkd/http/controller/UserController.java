@@ -130,7 +130,7 @@ public class UserController {
 
 
     /**
-     * 登录
+     * 控制层登录
      * @param req
      * @return
      * @throws IOException

@@ -2,6 +2,9 @@ package com.lkd.http.viewModel;
 
 import lombok.Data;
 
+/**
+ * 封装请求类-VO
+ */
 @Data
 public class LoginReq{
     private String loginName;

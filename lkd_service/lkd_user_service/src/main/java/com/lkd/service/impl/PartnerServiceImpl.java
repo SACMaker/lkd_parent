@@ -39,10 +39,18 @@ public class PartnerServiceImpl extends ServiceImpl<PartnerDao, PartnerEntity> i
 //    private MqttProducer mqttProducer;
 
     private final VMService vmService;
+
+    /**
+     * 合作商登录
+     * @param req
+     * @return
+     * @throws IOException
+     */
     @Override
     public LoginResp login(LoginReq req) throws IOException {
         LoginResp resp = new LoginResp();
         resp.setSuccess(false);
+        //校验验证码账号密码
         String code = redisTemplate.opsForValue().get(req.getClientToken());
         if(Strings.isNullOrEmpty(code)){
             resp.setMsg("验证码错误");
@@ -53,8 +61,7 @@ public class PartnerServiceImpl extends ServiceImpl<PartnerDao, PartnerEntity> i
             return resp;
         }
         QueryWrapper<PartnerEntity> qw = new QueryWrapper<>();
-        qw.lambda()
-                .eq(PartnerEntity::getAccount,req.getAccount());
+        qw.lambda().eq(PartnerEntity::getAccount,req.getAccount());
         PartnerEntity partnerEntity = this.getOne(qw);
 
         if(partnerEntity == null){
@@ -78,7 +85,6 @@ public class PartnerServiceImpl extends ServiceImpl<PartnerDao, PartnerEntity> i
         tokenObject.setMobile(partnerEntity.getMobile());
         String token = JWTUtil.createJWTByObj(tokenObject,partnerEntity.getMobile() + VMSystem.JWT_SECRET);
         resp.setToken(token);
-
         return resp;
     }
 
