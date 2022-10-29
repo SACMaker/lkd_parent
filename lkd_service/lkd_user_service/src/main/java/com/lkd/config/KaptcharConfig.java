@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
+/**
+ * Kaptcha（卡普查)图形验证码配置类
+ */
 @Component
 public class KaptcharConfig {
 

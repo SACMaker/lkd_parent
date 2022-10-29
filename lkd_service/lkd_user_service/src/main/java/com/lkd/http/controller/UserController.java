@@ -150,7 +150,7 @@ public class UserController {
     }
 
     /**
-     * 获取图片验证码
+     * 控制层获取图片验证码
      * @param httpServletRequest
      * @param httpServletResponse
      */
@@ -167,7 +167,7 @@ public class UserController {
         responseOutputStream.write(captchaChallengeAsJpeg);
         responseOutputStream.flush();
         responseOutputStream.close();
-        //将验证码存入redis  2分钟超时
+        //将验证码存入redis  2分钟超时,后面用于校验
         redisTemplate.boundValueOps(clientToken).set(createText,120, TimeUnit.SECONDS);
     }
 
