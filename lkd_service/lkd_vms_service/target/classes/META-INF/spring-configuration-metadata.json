@@ -1,0 +1,67 @@
+{
+  "groups": [
+    {
+      "name": "minio",
+      "type": "com.lkd.config.MinIOConfig",
+      "sourceType": "com.lkd.config.MinIOConfig"
+    },
+    {
+      "name": "sku",
+      "type": "com.lkd.config.SkuImageConfig",
+      "sourceType": "com.lkd.config.SkuImageConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "minio.access-key",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.MinIOConfig"
+    },
+    {
+      "name": "minio.bucket",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.MinIOConfig"
+    },
+    {
+      "name": "minio.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.MinIOConfig"
+    },
+    {
+      "name": "minio.read-path",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.MinIOConfig"
+    },
+    {
+      "name": "minio.secret-key",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.MinIOConfig"
+    },
+    {
+      "name": "sku.access-key-id",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.SkuImageConfig"
+    },
+    {
+      "name": "sku.access-key-secret",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.SkuImageConfig"
+    },
+    {
+      "name": "sku.bucket-name",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.SkuImageConfig"
+    },
+    {
+      "name": "sku.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.SkuImageConfig"
+    },
+    {
+      "name": "sku.image-path",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.SkuImageConfig"
+    }
+  ],
+  "hints": []
+}

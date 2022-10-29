@@ -1,0 +1,17 @@
+{
+  "groups": [
+    {
+      "name": "skipauth",
+      "type": "com.lkd.config.GatewayConfig",
+      "sourceType": "com.lkd.config.GatewayConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "skipauth.urls",
+      "type": "java.lang.String[]",
+      "sourceType": "com.lkd.config.GatewayConfig"
+    }
+  ],
+  "hints": []
+}

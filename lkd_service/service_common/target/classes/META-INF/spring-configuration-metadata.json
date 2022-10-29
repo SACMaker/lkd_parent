@@ -1,0 +1,17 @@
+{
+  "groups": [
+    {
+      "name": "commoncfg",
+      "type": "com.lkd.config.CommonConfig",
+      "sourceType": "com.lkd.config.CommonConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "commoncfg.domain-url",
+      "type": "java.lang.String",
+      "sourceType": "com.lkd.config.CommonConfig"
+    }
+  ],
+  "hints": []
+}
