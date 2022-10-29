@@ -25,7 +25,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
- * JWT filter
+ * JWT filter 用于网关鉴权
+ * 注意:所有请求都需要经过网关,配置文件中设置的不用经过网关(eg:/login-登录)直接放行
  */
 @Component
 @Slf4j
@@ -46,17 +47,21 @@ public class JwtTokenFilter implements GlobalFilter, Ordered{
         if(null != gatewayConfig.getUrls()&& Arrays.asList(gatewayConfig.getUrls()).contains(url)){
             return chain.filter(exchange);
         }
+        //从请求的"Authorization"拿JWT
         String token = exchange.getRequest().getHeaders().getFirst("Authorization");
         ServerHttpResponse resp = exchange.getResponse();
         if(Strings.isNullOrEmpty(token)) return authError(resp);
 
         try {
+            //解码JWT
             TokenObject tokenObject = JWTUtil.decode(token);
+            //校验JWT
             JWTUtil.VerifyResult verifyResult = JWTUtil.verifyJwt(token,tokenObject.getMobile()+VMSystem.JWT_SECRET);
             if(!verifyResult.isValidate()) return authError(resp);
         } catch (IOException e) {
             return authError(resp);
         }
+        //校验JWT通过放行
         return chain.filter(exchange);
     }
 
