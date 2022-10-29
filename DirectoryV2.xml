@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+ <trees>
+     <tree path="/lkd_service/lkd_user_service" title="用户服务"/>
+     <tree path="/lkd_service/lkd_gate_way" title="B端网关"/>
+ </trees>

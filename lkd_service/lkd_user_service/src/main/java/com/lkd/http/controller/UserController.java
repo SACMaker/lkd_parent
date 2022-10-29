@@ -141,7 +141,7 @@ public class UserController {
     }
 
     /**
-     * 生成登录手机验证码
+     * 控制层生成登录手机验证码
      * @param mobile
      */
     @GetMapping("/code/{mobile}")

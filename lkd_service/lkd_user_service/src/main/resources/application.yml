@@ -1,7 +1,16 @@
+server:
+  port: 9006
+
 spring:
   application:
     name: user-service
-
-server:
-  port: 9006
+   #阿里云sms服务使用密钥
+#  cloud:
+#    alicloud:
+#      access-key: LTAI4Frk7UF5C4dupvaHfopQ
+#      secret-key: 1FH7Bxe3lrYFmqrIXqWjM0x4VAHpXR
+#sms:
+#  operator:
+#    signName: 立可得 #签名
+#    templateCode: SMS_202816312 #模板号
 

@@ -9,13 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * 发送短信者
+ */
 @Component
 @Slf4j
 public class SmsSender {
     @Autowired
     private SmsConfig smsConfig;
     @Autowired
-    private ISmsService smsService;
+    private ISmsService smsService;//调用阿里云sms服务接口
 
     /**
      *  发送验证码短信
@@ -32,10 +35,10 @@ public class SmsSender {
         request.setSignName(smsConfig.getSignName());
         // 必填:短信模板-可在短信控制台中找到
         request.setTemplateCode(smsConfig.getTemplateCode());
-        // 可选:模板中的变量替换JSON串,如模板内容为"【企业级分布式应用服务】,您的验证码为${code}"时,此处的值为
+        // 可选:模板中的变量替换JSON串,如模板内容为"【企业级分布式应用服务】,您的验证码为${code}"时,${code}为占位符
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.createObjectNode();
-        ((ObjectNode)rootNode).put("code",code);
+        ((ObjectNode)rootNode).put("code",code);//此处生成的code会替换模版中的${code}占位符
 
         try {
             request.setTemplateParam(mapper.writeValueAsString(rootNode));

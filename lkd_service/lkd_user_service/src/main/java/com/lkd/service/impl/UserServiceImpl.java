@@ -96,7 +96,10 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
     }
 
 
-
+    /**
+     * 服务层发送短信
+     * @param mobile
+     */
     @Override
     public void sendCode(String mobile){
         //非空校验
@@ -104,17 +107,15 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
 
         //查询用户表中是否存在该手机号
         LambdaQueryWrapper<UserEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper
-                .eq(UserEntity::getMobile,mobile);
+        wrapper.eq(UserEntity::getMobile,mobile);
         if(this.count(wrapper)<=0) return;  //如果不存在，直接返回
         if(redisTemplate.opsForValue().get(mobile) != null) return;  //避免5分钟内重复发送
         //生成5位短信验证码
         StringBuilder sbCode = new StringBuilder();
-        Stream
-                .generate(()-> new Random().nextInt(10))
+        Stream.generate(()-> new Random().nextInt(10))
                 .limit(5)
                 .forEach(x-> sbCode.append(x));
-        //将验证码放入redis  ，5分钟过期
+        //将验证码放入redis,5分钟过期,同时用于登录校验
         redisTemplate.opsForValue().set(mobile,sbCode.toString(), Duration.ofMinutes(5));
         //发送短信
         smsSender.sendMsg(mobile,sbCode.toString());
