@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 /**
- * mybatis自动填充字段
+ * mybatisPlus自动填充字段
+ * 填充createTime和updateTime
  */
 @Slf4j
 @Component

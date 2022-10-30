@@ -2,4 +2,13 @@
  <trees>
      <tree path="/lkd_service/lkd_user_service" title="用户服务"/>
      <tree path="/lkd_service/lkd_gate_way" title="B端网关"/>
+     <tree path="/lkd_common" title="公共模块"/>
+     <tree path="/lkd_service" title="服务模块"/>
+     <tree path="/lkd_service/lkd_gateway_microapp" title="C端网关"/>
+     <tree path="/lkd_service/lkd_microapp" title="小程序"/>
+     <tree path="/lkd_service/lkd_order_service" title="订单服务"/>
+     <tree path="/lkd_service/lkd_production_service" title="工单服务"/>
+     <tree path="/lkd_service/lkd_status_service" title="服务状态"/>
+     <tree path="/lkd_service/lkd_vms_service" title="售货机服务"/>
+     <tree path="/lkd_service/service_common" title="服务公共模块"/>
  </trees>
