@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * mqtt消息生产者
+ */
 @Component
 @Slf4j
 public class MqttProducer {
@@ -16,13 +19,14 @@ public class MqttProducer {
     @Value("${mqtt.producer.defaultQos}")
     private int defaultProducerQos;
     @Value("${mqtt.producer.defaultRetained}")
-    private boolean defaultRetained;
+    private boolean defaultRetained;//是否保留消息
     @Value("${mqtt.producer.defaultTopic}")
     private String defaultTopic;
 
     @Autowired
     private MqttClient mqttClient;
 
+    //发送的消息的重载方法
     public void send(String payload) {
         this.send(defaultTopic, payload);
     }
@@ -34,7 +38,6 @@ public class MqttProducer {
     public void send(String topic, int qos, String payload) {
         this.send(topic, qos, defaultRetained, payload);
     }
-
     public void send(String topic, int qos, boolean retained, String payload) {
         try {
             mqttClient.publish(topic, payload.getBytes(), qos, retained);

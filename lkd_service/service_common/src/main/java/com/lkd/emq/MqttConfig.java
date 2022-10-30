@@ -15,10 +15,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Configuration
-@Component
+/**
+ * mqtt配置类:配置绑定
+ */
 @Data
 @Slf4j
+@Component
+@Configuration
 public class MqttConfig {
     @Value("${mqtt.client.username}")
     private String username;
@@ -45,12 +48,10 @@ public class MqttConfig {
             MqttClient client = new MqttClient(serverURI, clientId, persistence);
             //设置手动消息接收确认
             client.setManualAcks(true);
-            mqttCallback.setMqttClient(client);
-            client.setCallback(mqttCallback);
-
-
-            client.connect(mqttConnectOptions());
-//            client.subscribe(subTopic);
+            mqttCallback.setMqttClient(client);//设置消息回调的中的客户端
+            client.setCallback(mqttCallback);//设置回调侦听器
+            client.connect(mqttConnectOptions());//连接
+            //client.subscribe(subTopic);
             return client;
         } catch (MqttException e) {
             log.error("emq connect error",e);
@@ -58,21 +59,28 @@ public class MqttConfig {
         }
     }
 
+    /**
+     * mqtt连接选项(参数)
+     * @return
+     */
     @Bean
     public MqttConnectOptions mqttConnectOptions() {
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setUserName(username);
-        options.setPassword(password.toCharArray());
-        options.setCleanSession(true);
-        options.setAutomaticReconnect(true);
+        options.setUserName(username);//用户名
+        options.setPassword(password.toCharArray());//密码
+        options.setCleanSession(true);//是否清除之前的连接信息
+        options.setAutomaticReconnect(true);//自动连接
         options.setConnectionTimeout(connectionTimeout);
         options.setKeepAliveInterval(keepAliveInterval);
         options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
-
         return options;
     }
 
+    /**
+     * Mqtt客户端持久化
+     * @return
+     */
     public MqttClientPersistence mqttClientPersistence() {
-        return new MemoryPersistence();
+        return new MemoryPersistence();//内存持久化
     }
 }
