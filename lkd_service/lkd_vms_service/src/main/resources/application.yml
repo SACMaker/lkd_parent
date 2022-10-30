@@ -1,9 +1,16 @@
+server:
+  port: 9004
+
 spring:
   application:
     name: vm-service
-
-server:
-  port: 9004
+#minio配置
+#minio:
+#  accessKey: minio
+#  secretKey: minio123
+#  bucket: lkd
+#  endpoint: http://192.168.200.128:9001
+#  readPath: http://192.168.200.128:9001
 
 #  rabbitmq:
 #    host: 47.92.101.139

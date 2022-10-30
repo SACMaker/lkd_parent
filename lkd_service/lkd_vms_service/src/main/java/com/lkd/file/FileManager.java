@@ -2,7 +2,8 @@ package com.lkd.file;
 
 import com.lkd.config.MinIOConfig;
 import com.lkd.exception.LogicException;
-import io.minio.*;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,9 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * minio文件文件上传
+ */
 @Slf4j
 @Component
 public class FileManager {
@@ -20,6 +24,7 @@ public class FileManager {
 
     /**
      * 上传文件到MinIO
+     *
      * @param file
      * @throws NoSuchAlgorithmException
      * @throws IOException
@@ -31,23 +36,27 @@ public class FileManager {
             PutObjectArgs putObjectArgs = PutObjectArgs.builder()
                     .object(file.getOriginalFilename())
                     .contentType(file.getContentType())
-                    .stream(file.getInputStream(),file.getSize(),-1)  // partSize -1表示整体(不分片)上传
+                    .stream(file.getInputStream(), file.getSize(), -1)  // partSize -1表示整体(不分片)上传
                     .bucket(minIOConfig.getBucket())
                     .build();
             minioClient.putObject(putObjectArgs);
             StringBuilder sbPhotoPath = new StringBuilder(minIOConfig.getReadPath());
             sbPhotoPath.append("/").append(minIOConfig.getBucket()).append("/").append(file.getOriginalFilename());
             return sbPhotoPath.toString();
-        }catch (Exception ex){
-            log.error("minio put file error.",ex);
+        } catch (Exception ex) {
+            log.error("minio put file error.", ex);
             throw new LogicException("上传文件失败");
         }
     }
 
-    private MinioClient buildMinioClient(){
+    /**
+     * 构建minioclient
+     * @return
+     */
+    private MinioClient buildMinioClient() {
         return MinioClient
                 .builder()
-                .credentials(minIOConfig.getAccessKey(),minIOConfig.getSecretKey())
+                .credentials(minIOConfig.getAccessKey(), minIOConfig.getSecretKey())
                 .endpoint(minIOConfig.getEndpoint())
                 .build();
     }
