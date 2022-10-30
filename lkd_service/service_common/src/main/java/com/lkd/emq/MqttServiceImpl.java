@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * mqtt消息处理实现类
+ */
 @Component
 @Slf4j
 public class MqttServiceImpl implements MqttService{

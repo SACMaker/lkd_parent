@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * 处理货道请求
+ *
  */
 @Component
 @ProcessType(value = "channelCfgReq")

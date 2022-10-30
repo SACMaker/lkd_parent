@@ -15,6 +15,7 @@ import java.io.IOException;
 
 /**
  * 更新合作商信息
+ *
  */
 @Slf4j
 @Component

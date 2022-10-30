@@ -15,6 +15,7 @@ import java.io.IOException;
 
 /**
  * 处理商品配置请求
+ *
  */
 @Component
 @ProcessType(value = "skuCfgReq")

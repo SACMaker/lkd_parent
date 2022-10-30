@@ -20,6 +20,7 @@ import java.io.IOException;
 
 /**
  * 售货机版本配置处理
+ *
  */
 @Component
 @ProcessType(value = "versionCfg")

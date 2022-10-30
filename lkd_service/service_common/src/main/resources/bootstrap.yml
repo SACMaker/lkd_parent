@@ -18,7 +18,7 @@ spring:
         health-check-interval: 10s
         enabled: true
         register: true
-        health-check-critical-timeout: 2m #2分钟之后健康检查未通过取消注册
+        health-check-critical-timeout: 100m #2分钟之后健康检查未通过取消注册
       host:  192.168.200.128
       port: 8500
       config:

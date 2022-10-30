@@ -1,3 +1,6 @@
+server:
+  port: 9005
+
 spring:
   application:
     name: task-service
@@ -58,6 +61,20 @@ spring:
 #  endpoint:
 #    health:
 #      show-details: always
+#mqtt配置
+#mqtt:
+#  client:
+#    username: admin
+#    password: public
+#    serverURI: tcp://192.168.200.128:1883
+#    clientId: monitor.task.${random.int[1000,9999]}
+#    keepAliveInterval: 10
+#    connectionTimeout: 30
+#  producer:
+#    defaultQos: 2
+#    defaultRetained: false
+#    defaultTopic: topic/test1
+#  consumer:
+#    consumerTopics: $queue/server/task/supply,$share/task/server/status
 
-server:
-  port: 9005
+

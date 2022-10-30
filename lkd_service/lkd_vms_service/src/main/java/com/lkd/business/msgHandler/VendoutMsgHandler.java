@@ -13,6 +13,7 @@ import java.io.IOException;
 
 /**
  * 处理出货结果
+ *
  */
 @Component
 @ProcessType(value = "vendoutResp")

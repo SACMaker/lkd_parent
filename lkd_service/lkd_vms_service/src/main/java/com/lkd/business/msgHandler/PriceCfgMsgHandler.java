@@ -14,6 +14,7 @@ import java.io.IOException;
 
 /**
  * 商品价格变更
+ *
  */
 @Component
 @ProcessType(value = "skuPrice")
