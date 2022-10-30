@@ -11,4 +11,11 @@
      <tree path="/lkd_service/lkd_status_service" title="服务状态"/>
      <tree path="/lkd_service/lkd_vms_service" title="售货机服务"/>
      <tree path="/lkd_service/service_common" title="服务公共模块"/>
- </trees>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/emq" title="emqx配置和客户端"/>
+    <tree path="/lkd_service/service_common/src/main/resources/bootstrap.yml" title="配置中心拉取配置配置文件"
+          extension="yml"/>
+    <tree path="/lkd_common/src/main/java/com/lkd/annotations/ProcessType.java" title="协议处理类型注解"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/business/msgHandler" title="消息处理"/>
+    <tree path="/lkd_service/lkd_vms_service/src/main/java/com/lkd/business/msgHandler" title="消息处理实现类"/>
+</trees>
