@@ -16,6 +16,7 @@ import java.util.List;
 public interface VendingMachineService extends IService<VendingMachineEntity> {
     /**
      * 根据售货机编号查找
+     *
      * @param innerCode
      * @return
      */
@@ -23,6 +24,7 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
 
     /**
      * 新增
+     *
      * @param vendingMachine
      * @return
      */
@@ -30,14 +32,16 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
 
     /**
      * 修改售货机
+     *
      * @param id
      * @param nodeId
      * @return
      */
-    boolean update(Long id,Long nodeId);
+    boolean update(Long id, Long nodeId);
 
     /**
      * 获取售货机所有货道
+     *
      * @param innerCode
      * @return
      */
@@ -45,6 +49,7 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
 
     /**
      * 获取售货机里所有商品
+     *
      * @param innerCode
      * @return
      */
@@ -52,15 +57,17 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
 
     /**
      * 获取售货机商品信息
+     *
      * @param innerCode
      * @param
      * @return
      */
-    SkuEntity getSku(String innerCode,long skuId);
+    SkuEntity getSku(String innerCode, long skuId);
 
 
     /**
      * 补货
+     *
      * @param supply
      * @return
      */
@@ -72,18 +79,19 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
      * @param status
      * @return
      */
-    boolean updateStatus(String innerCode,int status,Double lat,Double lon);
+    boolean updateStatus(String innerCode,int status);
 
     /**
      * 出货结果处理
+     *
      * @param vendoutResp
-
      * @return
      */
     boolean vendOutResult(VendoutResp vendoutResp);
 
     /**
      * 根据机器状态获取机器编号列表
+     *
      * @param isRunning
      * @param pageIndex
      * @param pageSize
@@ -93,14 +101,16 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
 
     /**
      * 根据状态获取售货机列表
+     *
      * @param status
      * @return
      */
-    Pager<VendingMachineEntity> query(Long pageIndex, Long pageSize, Integer status,String innerCode);
+    Pager<VendingMachineEntity> query(Long pageIndex, Long pageSize, Integer status, String innerCode);
 
 
     /**
      * 获取合作商下设备数量
+     *
      * @param ownerId
      * @return
      */
@@ -108,6 +118,7 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
 
     /**
      * 设置售货机位置信息
+     *
      * @param vmDistance
      * @return
      */

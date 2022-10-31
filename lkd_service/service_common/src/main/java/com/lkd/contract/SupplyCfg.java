@@ -6,6 +6,7 @@ import java.util.List;
 
 /**
  * 补货
+ *
  */
 @Data
 public class SupplyCfg extends BaseContract{

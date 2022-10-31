@@ -4,6 +4,7 @@ import lombok.Data;
 
 /**
  * 完成工单协议
+ *
  */
 @Data
 public class TaskCompleteContract extends BaseContract{

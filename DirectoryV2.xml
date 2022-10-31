@@ -20,4 +20,25 @@
     <tree path="/lkd_service/lkd_vms_service/src/main/java/com/lkd/business/msgHandler" title="消息处理实现类"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/feignService" title="open feigin"
           icons="IdeRating"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/TaskCompleteContract.java"
+          title="完成工单协议" extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/SupplyChannel.java" title="补货货道数据"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/SupplyCfg.java" title="补货协议"
+          extension="java"/>
+    <tree path="/lkd_service/lkd_vms_service/src/main/java/com/lkd/business/msgHandler/SupplyCfgMsgHandler.java"
+          title="补货消息处理" extension="java"/>
+    <tree path="/lkd_service/lkd_vms_service/src/main/java/com/lkd/business/msgHandler/TaskCompletedMsgHandler.java"
+          title="工单完成处理" extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/config/TopicConfig.java" title="消息队列中的主题配置"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/emq/MqttConfig.java" title="mqtt配置类:配置绑定"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/emq/MqttProducer.java" title="mqtt消息生产者"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/emq/MqttServiceImpl.java"
+          title="mqtt消息处理(分发)的实现类逻辑" extension="java"/>
+    <tree path="/lkd_service/lkd_user_service/src/main/java/com/lkd/sms" title="阿里云sms服务配置类"/>
+    <tree path="/lkd_service/lkd_user_service/src/main/java/com/lkd/config/KaptcharConfig.java"
+          title="Kaptcha（卡普查)图形验证码配置类" extension="java"/>
 </trees>

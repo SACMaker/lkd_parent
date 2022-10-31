@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 /**
  * 补货货道数据
+ *
  */
 @Data
 public class SupplyChannel implements Serializable{

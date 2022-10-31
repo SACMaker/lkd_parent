@@ -10,8 +10,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.lkd.common.VMSystem;
 import com.lkd.config.TopicConfig;
-import com.lkd.contract.*;
-import com.lkd.contract.server.SupplyTask;
+import com.lkd.contract.StatusInfo;
+import com.lkd.contract.SupplyCfg;
+import com.lkd.contract.VendoutResp;
+import com.lkd.contract.VmStatusContract;
 import com.lkd.dao.VendingMachineDao;
 import com.lkd.emq.MqttProducer;
 import com.lkd.entity.*;
@@ -248,34 +250,6 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao,Ven
     }
 
     @Override
-    public boolean updateStatus(String innerCode, int status,Double lat,Double lon) {
-        try{
-            UpdateWrapper<VendingMachineEntity> uw = new UpdateWrapper<>();
-            uw.lambda()
-            .eq(VendingMachineEntity::getInnerCode,innerCode)
-            .set(VendingMachineEntity::getVmStatus,status);
-            this.update(uw);
-
-            if(status == VMSystem.TASK_TYPE_DEPLOY){
-                var vmDistance = new VMDistance();
-                vmDistance.setInnerCode(innerCode);
-                vmDistance.setLat(lat);
-                vmDistance.setLon(lon);
-
-                this.setVMDistance(vmDistance);
-            }else if(status == VMSystem.TASK_TYPE_REVOKE){
-                this.removeVmInES(innerCode);
-            }
-        }catch (Exception ex){
-            log.error("updateStatus error,innerCode is " + innerCode + " status is " + status,ex);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
     @Transactional
     public boolean vendOutResult(VendoutResp vendoutResp) {
         try{
@@ -400,6 +374,22 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao,Ven
         vmEntity.setLongitudes(vmDistance.getLon());
         this.updateById(vmEntity);
 
+        return true;
+    }
+
+    @Override
+    public boolean updateStatus(String innerCode, int status) {
+        try{
+            UpdateWrapper<VendingMachineEntity> uw = new UpdateWrapper<>();
+            uw.lambda()
+                    .eq(VendingMachineEntity::getInnerCode,innerCode)
+                    .set(VendingMachineEntity::getVmStatus,status);
+            this.update(uw);
+
+        }catch (Exception ex){
+            log.error("updateStatus error,innerCode is " + innerCode + " status is " + status,ex);
+            return false;
+        }
         return true;
     }
 

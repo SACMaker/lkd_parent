@@ -7,7 +7,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.lkd.common.VMSystem;
+import com.lkd.config.TopicConfig;
+import com.lkd.contract.SupplyCfg;
+import com.lkd.contract.SupplyChannel;
+import com.lkd.contract.TaskCompleteContract;
 import com.lkd.dao.TaskDao;
+import com.lkd.emq.MqttProducer;
 import com.lkd.entity.TaskDetailsEntity;
 import com.lkd.entity.TaskEntity;
 import com.lkd.entity.TaskStatusTypeEntity;
@@ -55,6 +60,9 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MqttProducer mqttProducer;
+
     /**
      * 服务层实现类:创建工单
      *
@@ -67,7 +75,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
     @Transactional(rollbackFor = {Exception.class}, noRollbackFor = {LogicException.class})
     public boolean createTask(TaskViewModel taskViewModel) throws LogicException {
         //RPC获得机器状态进行工单状态校验
-        //this.checkCreateTask(taskViewModel.getInnerCode(), taskViewModel.getProductType());
+        this.checkCreateTask(taskViewModel.getInnerCode(), taskViewModel.getProductType());
         //sql查询-是否有相同工单
         if (this.hasTask(taskViewModel.getInnerCode(), taskViewModel.getProductType())) {
             throw new LogicException("该机器有未完成的同类型工单");
@@ -83,7 +91,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         taskEntity.setProductTypeId(taskViewModel.getProductType());
         /*String userName = userService.getUser(taskViewModel.getUserId()).getUserName();
         taskEntity.setUserName(userName)*/
-        ;
         //taskEntity.setInnerCode(taskViewModel.getInnerCode());
         //taskEntity.setAssignorId(taskViewModel.getAssignorId());
         //taskEntity.setUserId(taskViewModel.getUserId());
@@ -110,6 +117,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
 
     /**
      * 服务层实现类:接受工单
+     *
      * @param id
      * @return
      */
@@ -123,40 +131,139 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         return this.updateById(task);
     }
 
+    /**
+     * 取消工单
+     * @param id
+     * @param cancelVM
+     * @return
+     */
     @Override
     public boolean cancelTask(long id, CancelTaskViewModel cancelVM) {
         TaskEntity task = this.getById(id);
-        if(task.getTaskStatus() == VMSystem.TASK_STATUS_FINISH || task.getTaskStatus() == VMSystem.TASK_STATUS_CANCEL){
+        if (task.getTaskStatus() == VMSystem.TASK_STATUS_FINISH || task.getTaskStatus() == VMSystem.TASK_STATUS_CANCEL) {
             throw new LogicException("该工单已经结束");
         }
         task.setTaskStatus(VMSystem.TASK_STATUS_CANCEL);
         task.setDesc(cancelVM.getDesc());
-
         return this.updateById(task);
     }
 
 
     @Override
+    @Transactional
     public boolean completeTask(long id) {
+        return completeTask(id, 0d, 0d, "");
+    }
+
+    /**
+     * 完成工单
+     * @param id
+     * @param lat
+     * @param lon
+     * @param addr
+     * @return
+     */
+    @Override
+    public boolean completeTask(long id, Double lat, Double lon, String addr) {
         TaskEntity taskEntity = this.getById(id);
+        if(taskEntity.getTaskStatus()== VMSystem.TASK_STATUS_FINISH  || taskEntity.getTaskStatus()== VMSystem.TASK_STATUS_CANCEL ){
+            throw new LogicException("工单已经结束");
+        }
         taskEntity.setTaskStatus(VMSystem.TASK_STATUS_FINISH);
+        taskEntity.setAddr(addr);
         this.updateById(taskEntity);
-        //todo: 向消息队列发送消息，通知售货机更改状态
+
+        //如果是补货工单
+        if(taskEntity.getProductTypeId()==VMSystem.TASK_TYPE_SUPPLY){
+            //补货协议封装与下发
+            noticeVMServiceSupply(taskEntity);
+        }
+
+        //如果是投放工单或撤机工单
+        if(taskEntity.getProductTypeId()==VMSystem.TASK_TYPE_DEPLOY
+                || taskEntity.getProductTypeId()==VMSystem.TASK_TYPE_REVOKE){
+            //运维工单封装与下发
+            noticeVMServiceStatus(taskEntity,lat,lon);
+        }
+
         return true;
     }
+
+    /**
+     * 补货协议封装与下发
+     * @param taskEntity
+     */
+    private void noticeVMServiceSupply(TaskEntity taskEntity){
+
+        //协议内容封装
+        //1.根据工单id查询工单明细表
+        QueryWrapper<TaskDetailsEntity> qw = new QueryWrapper<>();
+        qw.lambda().eq(TaskDetailsEntity::getTaskId,taskEntity.getTaskId());
+        List<TaskDetailsEntity> details = taskDetailsService.list(qw);
+        //2.构建协议内容
+        SupplyCfg supplyCfg = new SupplyCfg();
+        supplyCfg.setInnerCode(taskEntity.getInnerCode());//售货机编号
+        List<SupplyChannel> supplyChannels = Lists.newArrayList();//补货数据
+        //从工单明细表提取数据加到补货数据中
+        details.forEach(d->{
+            SupplyChannel channel = new SupplyChannel();
+            channel.setChannelId(d.getChannelCode());
+            channel.setCapacity(d.getExpectCapacity());
+            supplyChannels.add(channel);
+        });
+        supplyCfg.setSupplyData(supplyChannels);
+
+        //2.下发补货协议
+        //发送到emq
+        try {
+            mqttProducer.send( TopicConfig.COMPLETED_TASK_TOPIC,2, supplyCfg );
+        } catch (Exception e) {
+            log.error("发送工单完成协议出错");
+            throw new LogicException("发送工单完成协议出错");
+        }
+
+    }
+
+    /**
+     * 运维工单封装与下发
+     * @param taskEntity
+     */
+    private void noticeVMServiceStatus(TaskEntity taskEntity,Double lat,Double lon){
+        //向消息队列发送消息，通知售货机更改状态
+        //封装协议
+        TaskCompleteContract taskCompleteContract=new TaskCompleteContract();
+        taskCompleteContract.setInnerCode(taskEntity.getInnerCode());//售货机编号
+        taskCompleteContract.setTaskType( taskEntity.getProductTypeId() );//工单类型
+        taskCompleteContract.setLat(lat);//纬度
+        taskCompleteContract.setLon(lon);//经度
+        //发送到emq
+        try {
+            mqttProducer.send( TopicConfig.COMPLETED_TASK_TOPIC,2, taskCompleteContract );
+        } catch (Exception e) {
+            log.error("发送工单完成协议出错");
+            throw new LogicException("发送工单完成协议出错");
+        }
+    }
+
 
 
     @Override
     public List<TaskStatusTypeEntity> getAllStatus() {
         QueryWrapper<TaskStatusTypeEntity> qw = new QueryWrapper<>();
-        qw.lambda()
-                .ge(TaskStatusTypeEntity::getStatusId, VMSystem.TASK_STATUS_CREATE);
-
+        qw.lambda().ge(TaskStatusTypeEntity::getStatusId, VMSystem.TASK_STATUS_CREATE);
         return statusTypeService.list(qw);
     }
 
     @Override
-    public Pager<TaskEntity> search(Long pageIndex, Long pageSize, String innerCode, Integer userId, String taskCode, Integer status, Boolean isRepair, String start, String end) {
+    public Pager<TaskEntity> search(Long pageIndex,
+                                    Long pageSize,
+                                    String innerCode,
+                                    Integer userId,
+                                    String taskCode,
+                                    Integer status,
+                                    Boolean isRepair,
+                                    String start,
+                                    String end) {
         Page<TaskEntity> page = new Page<>(pageIndex, pageSize);
         LambdaQueryWrapper<TaskEntity> qw = new LambdaQueryWrapper<>();
         if (!Strings.isNullOrEmpty(innerCode)) {
@@ -179,8 +286,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
             }
         }
         if (!Strings.isNullOrEmpty(start) && !Strings.isNullOrEmpty(end)) {
-            qw
-                    .ge(TaskEntity::getCreateTime, LocalDate.parse(start, DateTimeFormatter.ISO_LOCAL_DATE))
+            qw.ge(TaskEntity::getCreateTime, LocalDate.parse(start, DateTimeFormatter.ISO_LOCAL_DATE))
                     .le(TaskEntity::getCreateTime, LocalDate.parse(end, DateTimeFormatter.ISO_LOCAL_DATE));
         }
         //根据最后更新时间倒序排序

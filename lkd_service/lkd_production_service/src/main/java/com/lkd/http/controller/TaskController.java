@@ -93,13 +93,16 @@ public class TaskController extends BaseController {
 
     /**
      * 完成工单
-     *
      * @param taskId
      * @return
      */
     @GetMapping("/complete/{taskId}")
-    public boolean complete(@PathVariable("taskId") long taskId) {
-        return taskService.completeTask(taskId);
+    public boolean complete(@PathVariable("taskId") String taskId,
+                            @RequestParam(value = "lat",required = false,defaultValue ="0") Double lat,
+                            @RequestParam(value = "lon",required = false,defaultValue ="0") Double lon,
+                            @RequestParam(value = "addr",required = false,defaultValue ="") String addr
+    ){
+        return taskService.completeTask(Long.valueOf(taskId),lat,lon,addr);
     }
 
 

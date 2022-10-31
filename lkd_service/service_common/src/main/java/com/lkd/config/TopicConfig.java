@@ -2,6 +2,7 @@ package com.lkd.config;
 
 /**
  * 消息队列中的主题配置
+ *
  */
 public class TopicConfig {
     /**

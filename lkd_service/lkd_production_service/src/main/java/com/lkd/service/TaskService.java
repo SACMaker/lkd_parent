@@ -45,6 +45,16 @@ public interface TaskService extends IService<TaskEntity> {
     boolean completeTask(long id);
 
     /**
+     * 完成工单重载
+     * @param id
+     * @param lat
+     * @param lon
+     * @param addr
+     * @return
+     */
+    boolean completeTask(long id, Double lat, Double lon, String addr);
+
+    /**
      * 获取所有状态类型
      *
      * @return
