@@ -4,10 +4,13 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.*;
+import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 工单详情实体类
+ */
 @Data
 @TableName(value = "tb_task_details")
 public class TaskDetailsEntity implements Serializable{

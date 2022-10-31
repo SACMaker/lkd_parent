@@ -2,6 +2,9 @@ package com.lkd.http.viewModel;
 
 import lombok.Data;
 
+/**
+ * 工单详情VO
+ */
 @Data
 public class TaskDetailsViewModel{
     /**

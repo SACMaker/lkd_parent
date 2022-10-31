@@ -5,11 +5,19 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * 创建工单VO(工单的视图模型对象)
+ */
 @Data
 public class TaskViewModel implements Serializable{
     /**
+     * 用户名称
+     */
+    private String userName;
+    /**
      * 工单名称
      */
+    @Deprecated
     private String taskName;
     /**
      * 工单类型
@@ -40,6 +48,7 @@ public class TaskViewModel implements Serializable{
     /**
      * 期望完成时间
      */
+    @Deprecated
     private String expect;
     /**
      * 工单详情(只有补货工单才涉及)

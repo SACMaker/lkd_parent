@@ -18,4 +18,6 @@
           extension="java"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/business/msgHandler" title="消息处理"/>
     <tree path="/lkd_service/lkd_vms_service/src/main/java/com/lkd/business/msgHandler" title="消息处理实现类"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/feignService" title="open feigin"
+          icons="IdeRating"/>
 </trees>
