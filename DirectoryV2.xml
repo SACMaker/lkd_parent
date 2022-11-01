@@ -41,4 +41,13 @@
     <tree path="/lkd_service/lkd_user_service/src/main/java/com/lkd/sms" title="阿里云sms服务配置类"/>
     <tree path="/lkd_service/lkd_user_service/src/main/java/com/lkd/config/KaptcharConfig.java"
           title="Kaptcha（卡普查)图形验证码配置类" extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/entity/AbstractEntity.java"
+          title="create_time&update_time的父类" extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/feignService/fallback" title="feigin调用失败反馈"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/http/process/GlobalExceptionHandler.java"
+          title="全局异常拦截" extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/viewmodel" title="VO"/>
+    <tree path="/lkd_service/service_common/src/main/resources/logback-spring.xml" title="日志配置文件"
+          extension="xml"/>
+    <tree path="/lkd_common/src/main/java/com/lkd/common/VMSystem.java" title="售货机信息" extension="java"/>
 </trees>

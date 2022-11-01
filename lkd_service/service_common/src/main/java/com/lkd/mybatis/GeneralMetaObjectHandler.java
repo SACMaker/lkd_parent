@@ -1,6 +1,7 @@
 package com.lkd.mybatis;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.lkd.entity.AbstractEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 /**
  * mybatisPlus自动填充字段
  * 填充createTime和updateTime
+ * @see AbstractEntity
  */
 @Slf4j
 @Component

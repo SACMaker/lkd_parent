@@ -1,7 +1,7 @@
 package com.lkd.common;
 
 /**
- * 售货机info
+ * 售货机信息
  */
 public class VMSystem {
     /**

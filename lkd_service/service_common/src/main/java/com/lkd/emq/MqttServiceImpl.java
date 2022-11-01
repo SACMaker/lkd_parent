@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * mqtt消息处理(分发)的实现类逻辑
+ * mqtt消息分发(处理)的实现类逻辑
  */
 @Component
 @Slf4j

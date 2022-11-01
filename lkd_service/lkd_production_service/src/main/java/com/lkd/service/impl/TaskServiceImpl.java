@@ -375,6 +375,10 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
      * @throws LogicException
      */
     private void checkCreateTask(String innerCode, int productType) throws LogicException {
+        /**
+         * 远程调用的实际调用
+         * @see com.lkd.http.controller.VendingMachineController#getByInnerCode(String)
+         */
         VendingMachineViewModel vmInfo = vmService.getVMInfo(innerCode);
         //设备校验失败
         if (vmInfo == null) {

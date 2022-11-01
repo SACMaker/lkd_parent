@@ -15,7 +15,6 @@ public class JWTUtilTest{
 
 
     }
-
     @Test
     public void generate(){
         for (int i = 0; i < 20; i++) {

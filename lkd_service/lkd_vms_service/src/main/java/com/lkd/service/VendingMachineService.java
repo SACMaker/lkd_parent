@@ -40,7 +40,7 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
     boolean update(Long id, Long nodeId);
 
     /**
-     * 获取售货机所有货道
+     * 获取售货机所有货道d
      *
      * @param innerCode
      * @return

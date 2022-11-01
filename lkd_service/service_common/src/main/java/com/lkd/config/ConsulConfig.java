@@ -3,6 +3,9 @@ package com.lkd.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * ConsulConfig
+ */
 @Configuration
 public class ConsulConfig {
     @Value("${spring.cloud.consul.host}")
