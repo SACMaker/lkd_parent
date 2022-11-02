@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
+/**
+ * 自动补货工单的创建
+ */
 @Component
 @ProcessType("supplyTask")
 @Slf4j
@@ -38,8 +41,8 @@ public class SupplyTaskHandler implements MsgHandler {
             //2.找出被指派人
             VendingMachineViewModel vm = vmService.getVMInfo(supplyCfg.getInnerCode());
             Integer userId = taskService.getLeastUser(vm.getRegionId().intValue(), false);
-            //3.创建补货工单
 
+            //3.创建补货工单
             TaskViewModel taskViewModel=new TaskViewModel();
             taskViewModel.setAssignorId(userId);
             taskViewModel.setCreateType(0);//创建类型

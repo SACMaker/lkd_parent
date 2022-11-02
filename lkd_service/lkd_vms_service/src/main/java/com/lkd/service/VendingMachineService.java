@@ -123,4 +123,16 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
      * @return
      */
     Boolean setVMDistance(VMDistance vmDistance);
+
+    /**
+     * 货道扫描与补货消息
+     * @param percent
+     */
+    int inventory(int percent,VendingMachineEntity vmEntity);
+
+    /**
+     * 发送补货工单
+     * @param vmEntity
+     */
+    void sendSupplyTask( VendingMachineEntity vmEntity );
 }
