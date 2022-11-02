@@ -40,6 +40,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -112,6 +113,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
                 taskDetailsService.save(detailsEntity);
             });
         }
+        //工单量分值+1
+        updateTaskZSet(taskEntity, 1);
         return true;
     }
 
@@ -145,6 +148,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         }
         task.setTaskStatus(VMSystem.TASK_STATUS_CANCEL);
         task.setDesc(cancelVM.getDesc());
+        //工单量分值-1
+        updateTaskZSet(task, -1);
         return this.updateById(task);
     }
 
@@ -174,16 +179,16 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         this.updateById(taskEntity);
 
         //如果是补货工单
-        if(taskEntity.getProductTypeId()==VMSystem.TASK_TYPE_SUPPLY){
+        if (taskEntity.getProductTypeId() == VMSystem.TASK_TYPE_SUPPLY) {
             //补货协议封装与下发
             noticeVMServiceSupply(taskEntity);
         }
 
         //如果是投放工单或撤机工单
-        if(taskEntity.getProductTypeId()==VMSystem.TASK_TYPE_DEPLOY
-                || taskEntity.getProductTypeId()==VMSystem.TASK_TYPE_REVOKE){
+        if (taskEntity.getProductTypeId() == VMSystem.TASK_TYPE_DEPLOY
+                || taskEntity.getProductTypeId() == VMSystem.TASK_TYPE_REVOKE) {
             //运维工单封装与下发
-            noticeVMServiceStatus(taskEntity,lat,lon);
+            noticeVMServiceStatus(taskEntity, lat, lon);
         }
 
         return true;
@@ -191,21 +196,22 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
 
     /**
      * 补货协议封装与下发
+     *
      * @param taskEntity
      */
-    private void noticeVMServiceSupply(TaskEntity taskEntity){
+    private void noticeVMServiceSupply(TaskEntity taskEntity) {
 
         //协议内容封装
         //1.根据工单id查询工单明细表
         QueryWrapper<TaskDetailsEntity> qw = new QueryWrapper<>();
-        qw.lambda().eq(TaskDetailsEntity::getTaskId,taskEntity.getTaskId());
+        qw.lambda().eq(TaskDetailsEntity::getTaskId, taskEntity.getTaskId());
         List<TaskDetailsEntity> details = taskDetailsService.list(qw);
         //2.构建协议内容
         SupplyCfg supplyCfg = new SupplyCfg();
         supplyCfg.setInnerCode(taskEntity.getInnerCode());//售货机编号
         List<SupplyChannel> supplyChannels = Lists.newArrayList();//补货数据
         //从工单明细表提取数据加到补货数据中
-        details.forEach(d->{
+        details.forEach(d -> {
             SupplyChannel channel = new SupplyChannel();
             channel.setChannelId(d.getChannelCode());
             channel.setCapacity(d.getExpectCapacity());
@@ -216,7 +222,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         //2.下发补货协议
         //发送到emq
         try {
-            mqttProducer.send( TopicConfig.COMPLETED_TASK_TOPIC,2, supplyCfg );
+            mqttProducer.send(TopicConfig.COMPLETED_TASK_TOPIC, 2, supplyCfg);
         } catch (Exception e) {
             log.error("发送工单完成协议出错");
             throw new LogicException("发送工单完成协议出错");
@@ -226,25 +232,25 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
 
     /**
      * 运维工单封装与下发
+     *
      * @param taskEntity
      */
-    private void noticeVMServiceStatus(TaskEntity taskEntity,Double lat,Double lon){
+    private void noticeVMServiceStatus(TaskEntity taskEntity, Double lat, Double lon) {
         //向消息队列发送消息，通知售货机更改状态
         //封装协议
-        TaskCompleteContract taskCompleteContract=new TaskCompleteContract();
+        TaskCompleteContract taskCompleteContract = new TaskCompleteContract();
         taskCompleteContract.setInnerCode(taskEntity.getInnerCode());//售货机编号
-        taskCompleteContract.setTaskType( taskEntity.getProductTypeId() );//工单类型
+        taskCompleteContract.setTaskType(taskEntity.getProductTypeId());//工单类型
         taskCompleteContract.setLat(lat);//纬度
         taskCompleteContract.setLon(lon);//经度
         //发送到emq
         try {
-            mqttProducer.send( TopicConfig.COMPLETED_TASK_TOPIC,2, taskCompleteContract );
+            mqttProducer.send(TopicConfig.COMPLETED_TASK_TOPIC, 2, taskCompleteContract);
         } catch (Exception e) {
             log.error("发送工单完成协议出错");
             throw new LogicException("发送工单完成协议出错");
         }
     }
-
 
 
     @Override
@@ -298,12 +304,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
 
     /**
      * 获取同一天内分配的工单最少的人
+     * 取消数据库查询的方案,采取从redis查的方案
      *
      * @param innerCode
      * @param isRepair  是否是维修工单
      * @return
      */
     @Override
+    @Deprecated
     public Integer getLeastUser(String innerCode, Boolean isRepair) {
         List<UserViewModel> userList = null;
         if (true) {
@@ -348,6 +356,30 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         taskList.stream().sorted(Comparator.comparing(TaskEntity::getUserId));
 
         return taskList.get(0).getAssignorId();
+    }
+
+    /**
+     * 获取同一天内分配的工单最少的人
+     * @param regionId 区域id
+     * @param isRepair 是否是维修工单
+     * @return
+     */
+    @Override
+    public Integer getLeastUser(Integer regionId, Boolean isRepair) {
+        String roleCode = "1002";
+        if (isRepair) { //如果是维修工单
+            roleCode = "1003";
+        }
+        String key = VMSystem.REGION_TASK_KEY_PREF
+                + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + "." + regionId + "." + roleCode;
+        //从小到大取0和1的范围的元素
+        Set<Object> set = redisTemplate.opsForZSet().range(key, 0, 1);
+        if (set == null || set.isEmpty()) {
+            throw new LogicException("该区域暂时没有相关人员");
+        }
+        //返回人员id
+        return (Integer) set.stream().collect(Collectors.toList()).get(0);
     }
 
 
@@ -416,5 +448,23 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         }
         //不是第一次,就在原有工单编号基础上+1
         return date + Strings.padStart(redisTemplate.opsForValue().increment(key, 1).toString(), 4, '0');
+    }
+
+    /**
+     * 更新工单统计量列表
+     *
+     * @param taskEntity
+     * @param score
+     */
+    private void updateTaskZSet(TaskEntity taskEntity, int score) {
+        String roleCode = "1003";//运维工单
+        if (taskEntity.getProductTypeId().intValue() == 2) { //运营工单
+            roleCode = "1002";
+        }
+        String key = VMSystem.REGION_TASK_KEY_PREF
+                + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + "." + taskEntity.getRegionId() + "." + roleCode;
+        //原子增
+        redisTemplate.opsForZSet().incrementScore(key, taskEntity.getAssignorId(), score);
     }
 }

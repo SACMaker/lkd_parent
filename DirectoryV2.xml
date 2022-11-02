@@ -22,7 +22,7 @@
           icons="IdeRating"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/TaskCompleteContract.java"
           title="完成工单协议" extension="java"/>
-    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/SupplyChannel.java" title="补货货道数据"
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/SupplyChannel.java" title="补货货道数据DTO"
           extension="java"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/SupplyCfg.java" title="补货协议"
           extension="java"/>
@@ -50,4 +50,9 @@
     <tree path="/lkd_service/service_common/src/main/resources/logback-spring.xml" title="日志配置文件"
           extension="xml"/>
     <tree path="/lkd_common/src/main/java/com/lkd/common/VMSystem.java" title="售货机信息" extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/VmStatusContract.java" title="售货机状态协议"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/StatusInfo.java" title="设备状态信息-DTO"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract" title="所有的协议和协议中的DTO"/>
 </trees>

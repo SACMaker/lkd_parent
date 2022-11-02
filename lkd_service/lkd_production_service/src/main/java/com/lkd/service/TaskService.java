@@ -83,5 +83,11 @@ public interface TaskService extends IService<TaskEntity> {
      */
     Integer getLeastUser(String innerCode, Boolean isRepair);
 
-
+    /**
+     * 获取同一天内分配的工单最少的人
+     * @param regionId 区域id
+     * @param isRepair 是否是维修工单
+     * @return
+     */
+    Integer getLeastUser(Integer regionId, Boolean isRepair);
 }

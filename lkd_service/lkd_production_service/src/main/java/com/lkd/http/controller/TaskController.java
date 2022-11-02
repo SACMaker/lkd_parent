@@ -182,6 +182,4 @@ public class TaskController extends BaseController {
 
         return jobEntity.getAlertValue();
     }
-
-
 }

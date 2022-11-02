@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 补货货道数据
+ * 补货货道数据-DTO
  *
  */
 @Data

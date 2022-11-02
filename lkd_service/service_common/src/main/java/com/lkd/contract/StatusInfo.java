@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 状态信息
+ * 设备状态信息-DTO
  */
 @Data
 public class StatusInfo implements Serializable{
