@@ -5,8 +5,7 @@ import com.lkd.contract.VendoutResp;
 import com.lkd.entity.OrderEntity;
 import com.lkd.http.viewModel.CreateOrderReq;
 import com.lkd.http.viewModel.OrderResp;
-
-import java.util.List;
+import com.lkd.viewmodel.CreateOrder;
 
 public interface OrderService extends IService<OrderEntity> {
     /**
@@ -16,7 +15,13 @@ public interface OrderService extends IService<OrderEntity> {
      */
     OrderResp createOrder(CreateOrderReq req);
 
+    /**
+     * 创建订单
+     * @param createOrder
+     * @return
+     */
 
+    OrderEntity createOrder(CreateOrder createOrder);
 
     /**
      * 处理出货结果

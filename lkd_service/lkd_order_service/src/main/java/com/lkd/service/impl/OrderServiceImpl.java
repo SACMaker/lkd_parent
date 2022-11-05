@@ -4,9 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lkd.common.VMSystem;
-import com.lkd.config.TopicConfig;
 import com.lkd.contract.VendoutReq;
 import com.lkd.contract.VendoutReqData;
 import com.lkd.contract.VendoutResp;
@@ -18,18 +16,20 @@ import com.lkd.http.viewModel.CreateOrderReq;
 import com.lkd.http.viewModel.OrderResp;
 import com.lkd.service.OrderCollectService;
 import com.lkd.service.OrderService;
-import com.lkd.viewmodel.*;
+import com.lkd.viewmodel.CreateOrder;
+import com.lkd.viewmodel.SkuViewModel;
+import com.lkd.viewmodel.VendingMachineViewModel;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.math.BigDecimal;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
 @Slf4j
-public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implements OrderService{
+public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
 
     //@Autowired
     //private MqttProducer mqttProducer;
@@ -71,6 +71,45 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implemen
         return resp;
     }
 
+    /**
+     *创建订单
+     * @param createOrder
+     * @return
+     */
+    @Override
+    public OrderEntity createOrder(CreateOrder createOrder) {
+        //获取机器info
+        VendingMachineViewModel vm = vmService.getVMInfo(createOrder.getInnerCode());
+        //获取商品info
+        SkuViewModel sku = vmService.getSku(createOrder.getInnerCode(), createOrder.getSkuId());
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setAddr(vm.getNodeAddr());
+        orderEntity.setNodeId(vm.getNodeId());
+        orderEntity.setNodeName(vm.getNodeName());
+        orderEntity.setSkuId(sku.getSkuId());
+        orderEntity.setSkuName(sku.getSkuName());
+        orderEntity.setAmount(sku.getRealPrice());
+        orderEntity.setClassId(sku.getClassId());
+        orderEntity.setPrice(sku.getPrice());
+        orderEntity.setBusinessId(vm.getBusinessId());
+        orderEntity.setBusinessName(vm.getBusinessName());
+        orderEntity.setInnerCode(createOrder.getInnerCode());
+        orderEntity.setOpenId(createOrder.getOpenId());
+        orderEntity.setPayStatus(VMSystem.PAY_STATUS_NOPAY);
+        orderEntity.setRegionId(vm.getRegionId());
+        orderEntity.setRegionName(vm.getRegionName());
+        //orderEntity.setOrderNo(createOrder.getInnerCode()+createOrder.getSkuId()+System.nanoTime());
+        //设置订单号
+        orderEntity.setOrderNo(createOrder.getInnerCode() + System.nanoTime());
+        //设置支付类型
+        orderEntity.setPayType(createOrder.getPayType());
+        orderEntity.setStatus(VMSystem.ORDER_STATUS_CREATE);
+        orderEntity.setOwnerId(vm.getOwnerId());
+        //保存订单
+        this.save(orderEntity);
+        return orderEntity;
+    }
+
 
     @Override
     public boolean vendoutResult(VendoutResp vendoutResp) {
@@ -78,13 +117,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implemen
         orderEntity.setOrderNo(vendoutResp.getVendoutResult().getOrderNo());
         UpdateWrapper<OrderEntity> uw = new UpdateWrapper<>();
         LambdaUpdateWrapper<OrderEntity> lambdaUpdateWrapper = uw.lambda();
-        lambdaUpdateWrapper.set(OrderEntity::getPayStatus,1);
-        if(vendoutResp.getVendoutResult().isSuccess()){
-            lambdaUpdateWrapper.set(OrderEntity::getStatus,VMSystem.ORDER_STATUS_VENDOUT_SUCCESS);
-        }else {
-            lambdaUpdateWrapper.set(OrderEntity::getStatus,VMSystem.ORDER_STATUS_VENDOUT_FAIL);
+        lambdaUpdateWrapper.set(OrderEntity::getPayStatus, 1);
+        if (vendoutResp.getVendoutResult().isSuccess()) {
+            lambdaUpdateWrapper.set(OrderEntity::getStatus, VMSystem.ORDER_STATUS_VENDOUT_SUCCESS);
+        } else {
+            lambdaUpdateWrapper.set(OrderEntity::getStatus, VMSystem.ORDER_STATUS_VENDOUT_FAIL);
         }
-        lambdaUpdateWrapper.eq(OrderEntity::getOrderNo,vendoutResp.getVendoutResult().getOrderNo());
+        lambdaUpdateWrapper.eq(OrderEntity::getOrderNo, vendoutResp.getVendoutResult().getOrderNo());
 
         return this.update(lambdaUpdateWrapper);
     }
@@ -92,7 +131,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implemen
     @Override
     public boolean payComplete(String orderNo, String thirdNo) {
         OrderEntity order = this.getByOrderNo(orderNo);
-        if(order == null) return false;
+        if (order == null) return false;
 
         // TODO:2.0项目没有原来的公司概念了
         float bill = 0f;
@@ -100,10 +139,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implemen
 
         UpdateWrapper<OrderEntity> uw = new UpdateWrapper<>();
         uw.lambda()
-                .eq(OrderEntity::getOrderNo,orderNo)
-                .set(OrderEntity::getThirdNo,thirdNo)
-                .set(OrderEntity::getPayStatus,1)
-                .set(OrderEntity::getBill,(int)bill);
+                .eq(OrderEntity::getOrderNo, orderNo)
+                .set(OrderEntity::getThirdNo, thirdNo)
+                .set(OrderEntity::getPayStatus, 1)
+                .set(OrderEntity::getBill, (int) bill);
 
         //向售货机发起出货请求
         sendVendout(orderNo);
@@ -122,7 +161,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implemen
     public OrderEntity getByOrderNo(String orderNo) {
         QueryWrapper<OrderEntity> qw = new QueryWrapper<>();
         qw.lambda()
-                .eq(OrderEntity::getOrderNo,orderNo);
+                .eq(OrderEntity::getOrderNo, orderNo);
 
         return this.getOne(qw);
     }
@@ -130,7 +169,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implemen
     @Override
     public Boolean cancel(String orderNo) {
         var order = this.getByOrderNo(orderNo);
-        if(order.getStatus() > VMSystem.ORDER_STATUS_CREATE)
+        if (order.getStatus() > VMSystem.ORDER_STATUS_CREATE)
             return true;
 
         order.setStatus(VMSystem.ORDER_STATUS_INVALID);
@@ -141,10 +180,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao,OrderEntity> implemen
 
 
     /**
-     *
      * @param orderNo
      */
-    private void sendVendout(String orderNo){
+    private void sendVendout(String orderNo) {
         OrderEntity orderEntity = this.getByOrderNo(orderNo);
 
         VendoutReqData reqData = new VendoutReqData();
