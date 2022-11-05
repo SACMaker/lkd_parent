@@ -1,7 +1,8 @@
-package http.controller;
+package com.lkd.controller.http;
 
+import com.lkd.feignService.OrderService;
 import com.lkd.feignService.VMService;
-import com.lkd.viewmodel.SkuViewModel;
+import com.lkd.service.WxService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,23 +10,29 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-@Slf4j
 @RestController
-@RequestMapping("/vm")
-public class VMController {
+@RequestMapping("/order")
+@Slf4j
+public class OrderController {
+
+
+    @Autowired
+    private WxService wxService;
+
     @Autowired
     private VMService vmService;
 
+    @Autowired
+    private OrderService orderService;
+
     /**
-     * 获取售货机商品列表(扫描售货机获取商品list)
+     * 获取openId
      *
-     * @param innerCode
+     * @param jsCode
      * @return
      */
-    @GetMapping("/skuList/{innerCode}")
-    public List<SkuViewModel> getSkuListByInnercode(@PathVariable String innerCode) {
-        return vmService.getAllSkuByInnerCode(innerCode);
+    @GetMapping("/openid/{jsCode}")
+    public String getOpenid(@PathVariable String jsCode) {
+        return wxService.getOpenId(jsCode);
     }
 }

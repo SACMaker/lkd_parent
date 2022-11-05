@@ -5,3 +5,8 @@ spring:
     allow-bean-definition-overriding: true
 server:
   port: 9009
+
+#微信支付配置
+#wxpay:
+#  appId: xxxxxxxxxxxxxx #微信支付商户平台里的appId
+#  appSecret: xxxxxxxxxxxxxxxxx  #微信支付商户平台里的appSecret
