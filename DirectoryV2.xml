@@ -17,7 +17,7 @@
     <tree path="/lkd_common/src/main/java/com/lkd/annotations/ProcessType.java" title="协议处理类型注解"
           extension="java"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/business/msgHandler" title="消息处理"/>
-    <tree path="/lkd_service/lkd_vms_service/src/main/java/com/lkd/business/msgHandler" title="消息处理实现类"/>
+    <tree path="/lkd_service/lkd_vms_service/src/main/java/com/lkd/business/msgHandler" title="消息处理实现类/协议消费者/消息处理者"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/feignService" title="open feigin"
           icons="IdeRating"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/TaskCompleteContract.java"

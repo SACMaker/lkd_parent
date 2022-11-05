@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.lkd.common.VMSystem;
 import com.lkd.config.TopicConfig;
 import com.lkd.contract.*;
@@ -29,6 +28,7 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -37,10 +37,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -153,31 +150,103 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
         return channelService.getChannelesByInnerCode(innerCode);
     }
 
+    /**
+     * 获取售货机里所有商品
+     *
+     * @param innerCode
+     * @return
+     */
     @Override
     public List<SkuViewModel> getSkuList(String innerCode) {
-        //获取有商品的货道
+        //代码优化(fix bug)
+        //获取所有商品的货道
+        List<ChannelEntity> channelList = this.getAllChannel(innerCode)
+                .stream()
+                .filter(c -> c.getSkuId() > 0 && c.getSku() != null)//skuId为0的商品代表商品不存在
+                .collect(Collectors.toList());
+
+        //获取商品库存余量
+        Map<SkuEntity, Integer> skuMap = channelList.stream().collect(Collectors.groupingBy(ChannelEntity::getSku/*分组依据-key*/,
+                Collectors.summingInt(ChannelEntity::getCurrentCapacity))/*聚合运算结果-value*/);
+        log.info("skuMap:{}", skuMap);
+
+        //商品价格表-map <key-商品id>
+        Map<Long, IntSummaryStatistics/*用于收集计数、最小值、最大值、总和和平均值等统计信息的状态对象*/> skuPrice =
+                channelList.stream().collect(Collectors.groupingBy(ChannelEntity::getSkuId,
+                        Collectors.summarizingInt(ChannelEntity::getPrice)));
+
+        return skuMap.entrySet().stream().map(entry -> {
+                    SkuEntity sku = entry.getKey();
+                    sku.setRealPrice(skuPrice.get(sku.getSkuId()).getMin());//真实价格(价格都是一样的)
+                    sku.setCapacity(entry.getValue());//设置商品库存
+                    log.info("sku.getCapacity():{}", sku.getCapacity());
+                    SkuViewModel skuViewModel = new SkuViewModel();
+                    BeanUtils.copyProperties(sku, skuViewModel);
+                    skuViewModel.setImage(sku.getSkuImage());
+                    return skuViewModel;
+                }).sorted(Comparator.comparing(SkuViewModel::getCapacity).reversed())
+                .collect(Collectors.toList());
+
+/*原始优化代码(has bug)
+       //货道查询
+        List<ChannelEntity> channelList = this.getAllChannel(innerCode)
+                .stream()
+                .filter(c->c.getSkuId() > 0 && c.getSku() != null)
+                .collect(Collectors.toList());
+
+        //获取商品库存余量
+        Map<SkuEntity, Integer> skuMap = channelList.stream().collect(Collectors.groupingBy(ChannelEntity::getSku分组依据-key,
+                Collectors.summingInt(ChannelEntity::getCurrentCapacity))聚合运算结果-value);
+
+        //商品价格表  map <key-商品id>
+        Map<Long, IntSummaryStatistics> skuPrice =
+                channelList.stream().collect(Collectors.groupingBy(ChannelEntity::getSkuId,
+                        Collectors.summarizingInt(ChannelEntity::getPrice)));
+
+        return skuMap.entrySet().stream().map( entry->{
+                    SkuEntity sku = entry.getKey();
+                    sku.setRealPrice( skuPrice.get(sku.getSkuId()).getMin() );//真实价格(实际情况价格都是一样的)
+                    SkuViewModel skuViewModel=new SkuViewModel();
+                    BeanUtils.copyProperties( sku,skuViewModel );
+                    skuViewModel.setImage( sku.getSkuImage() );
+                    skuViewModel.setCapacity(entry.getValue());//库存数
+                    return  skuViewModel;
+                } ).sorted(Comparator.comparing(SkuViewModel::getCapacity).reversed())
+                .collect( Collectors.toList() );
+*/
+/*
+        //获取所有商品的货道
         List<ChannelEntity> channelList = this.getAllChannel(innerCode)
                 .stream()
                 .filter(c -> c.getSkuId() > 0 && c.getSku() != null)
                 .collect(Collectors.toList());
-        Map<Long, SkuEntity> skuMap = Maps.newHashMap();
-        //将商品列表去重之后计算出最终售价返回
+
+        //Map<商品id,商品实体> skuMap 用于对货道中的商品进行去重
+        Map<Long,SkuEntity> skuMap = Maps.newHashMap();
+
+        //在循环中将商品列表去重之后计算出最终售价和库存返回
         channelList
                 .forEach(c -> {
                     SkuEntity sku = c.getSku();
-
+                    //设置真实价格
                     sku.setRealPrice(channelService.getRealPrice(innerCode, c.getSkuId()));
+                    //在循环中先把商品遍历添加进map中
                     if (!skuMap.containsKey(sku.getSkuId())) {
+                        //商品库存
                         sku.setCapacity(c.getCurrentCapacity());
                         skuMap.put(sku.getSkuId(), sku);
                     } else {
+                        //然后在循环中对商品的库存进行累加
                         SkuEntity value = skuMap.get(sku.getSkuId());
+                        //商品库存累加
                         value.setCapacity(value.getCapacity() + c.getCurrentCapacity());
                         skuMap.put(sku.getSkuId(), value);
                     }
                 });
+        //什么都没有直接返回空的list
         if (skuMap.values().size() <= 0) return Lists.newArrayList();
 
+        //设置DTO to VO,排序返回
         return skuMap
                 .values()
                 .stream()
@@ -195,6 +264,7 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
                 })
                 .sorted(Comparator.comparing(SkuViewModel::getCapacity).reversed())
                 .collect(Collectors.toList());
+*/
     }
 
     @Override
@@ -524,16 +594,17 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
 
     /**
      * 发送补货工单
+     *
      * @param vmEntity
      */
     @Override
     public void sendSupplyTask(VendingMachineEntity vmEntity) {
 
         //查询售货机的货道列表（ skuId!=0 ）
-        QueryWrapper<ChannelEntity> channelQueryWrapper=new QueryWrapper<>();
+        QueryWrapper<ChannelEntity> channelQueryWrapper = new QueryWrapper<>();
         channelQueryWrapper.lambda()
-                .eq(ChannelEntity::getVmId,vmEntity.getId()  )//售货机Id
-                .ne(ChannelEntity::getSkuId, 0L );
+                .eq(ChannelEntity::getVmId, vmEntity.getId())//售货机Id
+                .ne(ChannelEntity::getSkuId, 0L);
 
         //货道列表
         List<ChannelEntity> channelList = channelService.list(channelQueryWrapper);
@@ -549,14 +620,14 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
         }).collect(Collectors.toList());
 
         //构建补货协议数据
-        SupplyCfg supplyCfg=new SupplyCfg();
+        SupplyCfg supplyCfg = new SupplyCfg();
         supplyCfg.setInnerCode(vmEntity.getInnerCode());
         supplyCfg.setSupplyData(supplyChannelList);
         supplyCfg.setMsgType("supplyTask");
 
         try {
-            mqttProducer.send(TopicConfig.SUPPLY_TOPIC,2,supplyCfg);
-            XxlJobLogger.log("发送补货数据："+ JsonUtil.serialize(supplyCfg));
+            mqttProducer.send(TopicConfig.SUPPLY_TOPIC, 2, supplyCfg);
+            XxlJobLogger.log("发送补货数据：" + JsonUtil.serialize(supplyCfg));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

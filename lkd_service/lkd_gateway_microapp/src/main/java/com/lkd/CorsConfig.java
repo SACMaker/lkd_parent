@@ -9,6 +9,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * 网关跨域支持
+ *
  */
 @Configuration
 public class CorsConfig {

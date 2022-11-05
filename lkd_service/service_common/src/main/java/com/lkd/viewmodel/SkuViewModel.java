@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 商品信息-VO
+ */
 @Data
 public class SkuViewModel implements Serializable{
     /**
