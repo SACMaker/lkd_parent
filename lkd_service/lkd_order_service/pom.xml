@@ -78,6 +78,12 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
+        <!--微信支付依赖-->
+        <dependency>
+            <groupId>com.github.wxpay</groupId>
+            <artifactId>wxpay-sdk</artifactId>
+            <version>3.0.9</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
