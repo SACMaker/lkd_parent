@@ -4,11 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lkd.common.VMSystem;
+import com.lkd.config.TopicConfig;
 import com.lkd.contract.VendoutReq;
 import com.lkd.contract.VendoutReqData;
 import com.lkd.contract.VendoutResp;
 import com.lkd.dao.OrderDao;
+import com.lkd.emq.MqttProducer;
 import com.lkd.entity.OrderEntity;
 import com.lkd.feignService.UserService;
 import com.lkd.feignService.VMService;
@@ -31,8 +34,8 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
 
-    //@Autowired
-    //private MqttProducer mqttProducer;
+    @Autowired
+    private MqttProducer mqttProducer;
 
 
     @Autowired
@@ -150,8 +153,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return this.update(uw);
     }
 
+    /**
+     * 支付完成
+     * @param orderNo
+     * @return
+     */
     @Override
     public boolean payComplete(String orderNo) {
+        //通知售货机出货
         sendVendout(orderNo);
         return true;
     }
@@ -180,6 +189,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
 
     /**
+     * 通知售货机出货
      * @param orderNo
      */
     private void sendVendout(String orderNo) {
@@ -199,11 +209,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         req.setSn(System.nanoTime());
         req.setInnerCode(orderEntity.getInnerCode());
         req.setNeedResp(true);
-        /*
+        //向售货机发送出货请求
         try {
+            /**
+             * @see TopicConfig#getVendoutTopic(String)
+             */
             mqttProducer.send(TopicConfig.getVendoutTopic(orderEntity.getInnerCode()),2,req);
         } catch (JsonProcessingException e) {
             log.error("send vendout req error.",e);
-        }*/
+        }
     }
 }

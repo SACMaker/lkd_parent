@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 基础协议
+ */
 @Data
 public abstract class BaseContract extends AbstractContract implements Serializable{
     /**

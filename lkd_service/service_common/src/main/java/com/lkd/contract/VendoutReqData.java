@@ -2,6 +2,9 @@ package com.lkd.contract;
 
 import lombok.Data;
 
+/**
+ * 出货请求数据-DTO
+ */
 @Data
 public class VendoutReqData{
     /**

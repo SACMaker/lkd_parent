@@ -120,10 +120,12 @@ public class WXPayServiceImpl implements WXPayService {
             if("SUCCESS".equals(map.get("result_code"))){
                 String orderNo = map.get("out_trade_no");
                 OrderEntity orderEntity = orderService.getByOrderNo(orderNo);
+                //修改订单实体中的状态
                 orderEntity.setStatus(VMSystem.ORDER_STATUS_PAYED);
                 orderEntity.setPayStatus(VMSystem.PAY_STATUS_PAYED);
                 orderService.updateById(orderEntity);
-                //TODO:支付完成通知出货
+                //支付完成通知售货机出货
+                orderService.payComplete(orderNo);
             }else {
                 log.error("支付回调出错:"+notifyResult);
             }

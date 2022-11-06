@@ -59,4 +59,12 @@
           extension="java"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/utils/DistributedLock.java"
           title="consul分布式锁工具类" extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/VendoutReqData.java" title="出货请求数据-DTO"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/VendoutReq.java" title="出货请求的协议"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/AbstractContract.java" title="协议父类"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/BaseContract.java" title="基础协议"
+          extension="java"/>
 </trees>
