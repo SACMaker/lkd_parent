@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * 处理出货结果
+ * 售货机出货后-处理出货结果
  *
  */
 @Component
@@ -26,7 +26,7 @@ public class VendoutMsgHandler implements MsgHandler{
         if (!success) return;
         VendoutResp vendoutResp = JsonUtil.getByJson(jsonMsg,VendoutResp.class);
         if(Strings.isNullOrEmpty(vendoutResp.getInnerCode())) return;
-
+        //出货结果处理
         vmService.vendOutResult(vendoutResp);
     }
 }

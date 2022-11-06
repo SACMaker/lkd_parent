@@ -8,6 +8,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 出货数据实体
+ */
 @Data
 @TableName(value = "tb_vendout_running")
 public class VendoutRunningEntity extends AbstractEntity implements Serializable{

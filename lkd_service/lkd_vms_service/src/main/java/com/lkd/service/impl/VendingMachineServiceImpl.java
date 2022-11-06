@@ -317,13 +317,18 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
         return true;
     }
 
+    /**
+     * 售货机处售货通知
+     * @param vendoutResp
+     * @return
+     */
     @Override
     @Transactional
     public boolean vendOutResult(VendoutResp vendoutResp) {
         try {
             String key = "vmService.outResult." + vendoutResp.getVendoutResult().getOrderNo();
 
-            //对结果做校验，防止重复上传(从redis校验)
+            //对出货结果做校验，防止重复上传(从redis校验)
             Object redisValue = redisTemplate.opsForValue().get(key);
             redisTemplate.delete(key);
 
@@ -332,7 +337,6 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
                 return false;
             }
 
-
             //存入出货流水数据
             VendoutRunningEntity vendoutRunningEntity = new VendoutRunningEntity();
             vendoutRunningEntity.setInnerCode(vendoutResp.getInnerCode());
@@ -340,10 +344,10 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
             vendoutRunningEntity.setStatus(vendoutResp.getVendoutResult().isSuccess());
             vendoutRunningEntity.setPrice(vendoutResp.getVendoutResult().getPrice());
             vendoutRunningEntity.setSkuId(vendoutResp.getVendoutResult().getSkuId());
+            //存储出货数据
             vendoutRunningService.save(vendoutRunningEntity);
 
-
-            //存入redis
+            //出货存入redis
             redisTemplate.opsForValue().set(key, key);
             redisTemplate.expire(key, 7, TimeUnit.DAYS);
 
@@ -352,6 +356,7 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
             int currentCapacity = channel.getCurrentCapacity() - 1;
             if (currentCapacity < 0) {
                 log.info("缺货");
+                //缺货发送缺货info
                 notifyGoodsStatus(vendoutResp.getInnerCode(), true);
 
                 return true;
