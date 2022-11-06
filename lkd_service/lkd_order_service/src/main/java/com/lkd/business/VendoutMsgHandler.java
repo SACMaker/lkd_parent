@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * 处理出货结果
+ * 订单服务处理出货结果
  */
 @Component
 @ProcessType(value = "vendoutResp")
@@ -28,7 +28,7 @@ public class VendoutMsgHandler implements MsgHandler{
     @Override
     public void process(String jsonMsg) throws IOException {
         VendoutResp vendoutResp = JsonUtil.getByJson(jsonMsg, VendoutResp.class);
-        //解锁售货机状态
+        //解锁售货机状态,保证售货机出货之后可以继续出货
         DistributedLock lock = new DistributedLock(
                 consulConfig.getConsulRegisterHost(),
                 consulConfig.getConsulRegisterPort());

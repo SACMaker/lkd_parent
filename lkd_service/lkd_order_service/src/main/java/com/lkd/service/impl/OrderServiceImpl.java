@@ -113,7 +113,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderEntity;
     }
 
-
+    /**
+     * 订单服务处理出货结果
+     * @param vendoutResp 出货请求参数
+     * @return
+     */
     @Override
     public boolean vendoutResult(VendoutResp vendoutResp) {
         OrderEntity orderEntity = new OrderEntity();
@@ -127,7 +131,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             lambdaUpdateWrapper.set(OrderEntity::getStatus, VMSystem.ORDER_STATUS_VENDOUT_FAIL);
         }
         lambdaUpdateWrapper.eq(OrderEntity::getOrderNo, vendoutResp.getVendoutResult().getOrderNo());
-
+        //更新出货info,出货成功或者失败
         return this.update(lambdaUpdateWrapper);
     }
 
