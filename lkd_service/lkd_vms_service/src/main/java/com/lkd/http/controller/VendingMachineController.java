@@ -5,10 +5,10 @@ import com.lkd.entity.VendingMachineEntity;
 import com.lkd.entity.VmTypeEntity;
 import com.lkd.http.viewModel.CreateVMReq;
 import com.lkd.http.viewModel.PolicyReq;
-import com.lkd.viewmodel.VMDistance;
 import com.lkd.service.*;
 import com.lkd.viewmodel.Pager;
 import com.lkd.viewmodel.SkuViewModel;
+import com.lkd.viewmodel.VMDistance;
 import com.lkd.viewmodel.VendingMachineViewModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -238,4 +238,15 @@ public class VendingMachineController {
 //    public void inventory(@PathVariable int percent){
 //        vendingMachineService.inventory(percent);
 //    }
+
+    /**
+     * 售货机商品是否还有库存
+     * @param innerCode
+     * @param skuId
+     * @return
+     */
+    @GetMapping("/hasCapacity/{innerCode}/{skuId}")
+    public Boolean hasCapacity(@PathVariable String innerCode,@PathVariable Long skuId){
+        return vendingMachineService.hasCapacity(innerCode,skuId);
+    }
 }

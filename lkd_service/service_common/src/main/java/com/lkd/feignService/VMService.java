@@ -36,4 +36,13 @@ public interface VMService{
 
     @GetMapping("/node/nodeName/{id}")
     String getNodeName(@PathVariable Long id);
+
+    /**
+     * 检查商品的库存
+     * @param innerCode
+     * @param skuId
+     * @return
+     */
+    @GetMapping("/vm/hasCapacity/{innerCode}/{skuId}")
+    Boolean hasCapacity(@PathVariable String innerCode,@PathVariable Long skuId);
 }

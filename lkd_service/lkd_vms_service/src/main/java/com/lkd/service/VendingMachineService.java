@@ -135,4 +135,11 @@ public interface VendingMachineService extends IService<VendingMachineEntity> {
      * @param vmEntity
      */
     void sendSupplyTask( VendingMachineEntity vmEntity );
+
+    /**
+     * 商品是否还有余量
+     * @param skuId
+     * @return
+     */
+    Boolean hasCapacity(String innerCode,Long skuId);
 }

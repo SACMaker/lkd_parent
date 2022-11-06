@@ -44,6 +44,11 @@ public class OrderController {
      */
     @PostMapping("/requestPay")
     public String requestPay(@RequestBody RequestPay requestPay) {
+        //远程调用售货机服务检查商品库存
+        if(!vmService.hasCapacity(requestPay.getInnerCode()
+                ,Long.valueOf(requestPay.getSkuId()))){
+            throw new LogicException("该商品已售空");
+        }
         //如果openId为空，则根据jsCode生成
         if (Strings.isNullOrEmpty(requestPay.getOpenId())) {
             requestPay.setOpenId(wxService.getOpenId(requestPay.getJsCode()));

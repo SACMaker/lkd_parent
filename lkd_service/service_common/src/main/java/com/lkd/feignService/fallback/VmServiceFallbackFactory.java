@@ -63,6 +63,11 @@ public class VmServiceFallbackFactory implements FallbackFactory<VMService> {
             public String getNodeName(Long id) {
                 return null;
             }
+            //容量检查回调失败返回false
+            @Override
+            public Boolean hasCapacity(String innerCode, Long skuId) {
+                return false;
+            }
         };
     }
 }

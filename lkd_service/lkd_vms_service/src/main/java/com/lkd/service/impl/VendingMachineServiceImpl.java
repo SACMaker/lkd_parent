@@ -632,4 +632,14 @@ public class VendingMachineServiceImpl extends ServiceImpl<VendingMachineDao, Ve
             e.printStackTrace();
         }
     }
+
+    @Override
+    public Boolean hasCapacity(String innerCode,Long skuId) {
+        var qw = new LambdaQueryWrapper<ChannelEntity>();
+        qw.eq(ChannelEntity::getInnerCode,innerCode)
+                .eq(ChannelEntity::getSkuId,skuId)
+                .gt(ChannelEntity::getCurrentCapacity,0);
+
+        return channelService.count(qw) > 0;
+    }
 }

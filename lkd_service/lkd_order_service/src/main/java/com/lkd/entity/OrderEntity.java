@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Data
 @TableName(value = "tb_order")
 public class OrderEntity extends AbstractEntity implements Serializable{
-    @TableId(value = "id",type = IdType.ASSIGN_ID)
+    @TableId(value = "id",type = IdType.ASSIGN_ID)//mybatisplus自动分配生成id
     private Long id;//id
     @TableField(value = "order_no")
     private String orderNo;//订单编号
