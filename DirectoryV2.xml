@@ -67,4 +67,6 @@
           extension="java"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/BaseContract.java" title="基础协议"
           extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/server/OrderCheck.java" title="订单检查协议"
+          extension="java"/>
 </trees>

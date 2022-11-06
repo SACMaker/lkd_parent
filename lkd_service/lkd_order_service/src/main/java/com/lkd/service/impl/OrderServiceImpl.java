@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lkd.common.VMSystem;
+import com.lkd.conf.OrderConfig;
 import com.lkd.config.TopicConfig;
 import com.lkd.contract.VendoutReq;
 import com.lkd.contract.VendoutReqData;
 import com.lkd.contract.VendoutResp;
+import com.lkd.contract.server.OrderCheck;
 import com.lkd.dao.OrderDao;
 import com.lkd.emq.MqttProducer;
 import com.lkd.entity.OrderEntity;
@@ -110,6 +112,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderEntity.setOwnerId(vm.getOwnerId());
         //保存订单
         this.save(orderEntity);
+
+        //将订单放到延迟队列中，10分钟后检查支付状态
+        OrderCheck orderCheck = new OrderCheck();
+        orderCheck.setOrderNo(orderEntity.getOrderNo());
+        try {
+            mqttProducer.send("$delayed/60/"+ OrderConfig.ORDER_DELAY_CHECK_TOPIC,2,orderCheck);
+        } catch (JsonProcessingException e) {
+            log.error("send to emq error",e);
+        }
         return orderEntity;
     }
 
