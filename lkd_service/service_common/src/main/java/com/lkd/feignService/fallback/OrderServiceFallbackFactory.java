@@ -26,6 +26,16 @@ public class OrderServiceFallbackFactory implements FallbackFactory<OrderService
             public String requestPay(RequestPay requestPay) {
                 return null;
             }
+
+            /**
+             * 取消订单
+             * @param orderNo
+             * @return
+             */
+            @Override
+            public Boolean cancel(String orderNo) {
+                return null;
+            }
         };
     }
 }

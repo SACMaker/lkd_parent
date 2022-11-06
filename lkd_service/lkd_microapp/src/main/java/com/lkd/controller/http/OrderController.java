@@ -85,4 +85,25 @@ public class OrderController {
         }
         return responseData;
     }
+
+    /**
+     * 取消订单
+     * @param innerCode
+     */
+    @GetMapping("/cancelPay/{innerCode}/{orderNo}")
+    public void cancel(@PathVariable String innerCode,@PathVariable String orderNo){
+        DistributedLock lock = new DistributedLock(
+                consulConfig.getConsulRegisterHost(),
+                consulConfig.getConsulRegisterPort());
+        String sessionId = redisTemplate.boundValueOps(VMSystem.VM_LOCK_KEY_PREF + innerCode).get();
+        if(Strings.isNullOrEmpty(sessionId)) return;
+        try {
+            //取消订单释放锁
+            lock.releaseLock(sessionId);
+            //远程调用订单服务取消订单
+            orderService.cancel(orderNo);
+        }catch (Exception ex){
+            log.error("取消订单出错",ex);
+        }
+    }
 }

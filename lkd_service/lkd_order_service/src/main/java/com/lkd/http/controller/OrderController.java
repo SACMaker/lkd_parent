@@ -1,12 +1,11 @@
 package com.lkd.http.controller;
 
 import com.lkd.service.OrderService;
-import com.lkd.viewmodel.OrderViewModel;
-import com.lkd.viewmodel.Pager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/order")
@@ -23,6 +22,4 @@ public class OrderController {
     public Boolean cancel(@PathVariable String orderNo){
         return orderService.cancel(orderNo);
     }
-
-
 }

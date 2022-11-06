@@ -179,6 +179,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return this.getOne(qw);
     }
 
+    /**
+     * 取消订单
+     * @param orderNo
+     * @return
+     */
     @Override
     public Boolean cancel(String orderNo) {
         var order = this.getByOrderNo(orderNo);

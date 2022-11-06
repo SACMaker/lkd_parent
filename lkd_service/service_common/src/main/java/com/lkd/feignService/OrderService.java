@@ -18,4 +18,7 @@ public interface OrderService {
 
     @PostMapping("/wxpay/requestPay")
     String requestPay(@RequestBody RequestPay requestPay);
+
+    @GetMapping("/order/cancel/{orderNo}")
+    Boolean cancel(@PathVariable String orderNo);
 }
