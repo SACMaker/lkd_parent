@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * ConsulConfig
+ * ConsulConfig:Consul配置类
  */
 @Configuration
 public class ConsulConfig {

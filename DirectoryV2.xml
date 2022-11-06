@@ -55,4 +55,8 @@
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract/StatusInfo.java" title="设备状态信息-DTO"
           extension="java"/>
     <tree path="/lkd_service/service_common/src/main/java/com/lkd/contract" title="所有的协议和协议中的DTO"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/config/ConsulConfig.java" title="consul配置类"
+          extension="java"/>
+    <tree path="/lkd_service/service_common/src/main/java/com/lkd/utils/DistributedLock.java"
+          title="consul分布式锁工具类" extension="java"/>
 </trees>
