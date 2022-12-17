@@ -1,5 +1,6 @@
 package com.lkd.service;
 
-public enum DateType{
-    Day,Month,Year
+@Deprecated
+public enum DateType {
+    Day, Month, Year
 }

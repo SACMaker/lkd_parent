@@ -8,6 +8,9 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+/**
+ * OrderCollect实体类
+ */
 @Data
 @TableName(value = "tb_order_collect")
 public class OrderCollectEntity implements Serializable{

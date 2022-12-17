@@ -6,6 +6,10 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * mbp的分页器的VO
+ * @param <T>
+ */
 @Data
 public class Pager<T> implements Serializable{
 
