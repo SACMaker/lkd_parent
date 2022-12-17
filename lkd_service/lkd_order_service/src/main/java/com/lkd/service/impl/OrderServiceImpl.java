@@ -22,6 +22,7 @@ import com.lkd.http.viewModel.OrderResp;
 import com.lkd.service.OrderCollectService;
 import com.lkd.service.OrderService;
 import com.lkd.viewmodel.CreateOrder;
+import com.lkd.viewmodel.PartnerViewModel;
 import com.lkd.viewmodel.SkuViewModel;
 import com.lkd.viewmodel.VendingMachineViewModel;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -77,7 +80,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     }
 
     /**
-     *创建订单
+     * 创建订单
+     *
      * @param createOrder
      * @return
      */
@@ -110,6 +114,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderEntity.setPayType(createOrder.getPayType());
         orderEntity.setStatus(VMSystem.ORDER_STATUS_CREATE);
         orderEntity.setOwnerId(vm.getOwnerId());
+
+        //在创建订单业务中计算合作商的分成数据并且存到tb_order表中
+        //拿到机器对应的合作商INFO
+        PartnerViewModel partner = userService.getPartner(vm.getOwnerId());
+        BigDecimal price = new BigDecimal(sku.getPrice());
+        //计算合作商的分成数据,四舍五入
+        BigDecimal bill = price.multiply(new BigDecimal(partner.getRatio()).divide(new BigDecimal(100), 0, RoundingMode.HALF_UP));
+        orderEntity.setBill(bill.intValue());
+
         //保存订单
         this.save(orderEntity);
 
@@ -117,9 +130,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         OrderCheck orderCheck = new OrderCheck();
         orderCheck.setOrderNo(orderEntity.getOrderNo());
         try {
-            mqttProducer.send("$delayed/60/"+ OrderConfig.ORDER_DELAY_CHECK_TOPIC,2,orderCheck);
+            mqttProducer.send("$delayed/60/" + OrderConfig.ORDER_DELAY_CHECK_TOPIC, 2, orderCheck);
         } catch (JsonProcessingException e) {
-            log.error("send to emq error",e);
+            log.error("send to emq error", e);
         }
         return orderEntity;
     }
@@ -192,6 +205,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 取消订单
+     *
      * @param orderNo
      * @return
      */
@@ -210,6 +224,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 通知售货机出货
+     *
      * @param orderNo
      */
     private void sendVendout(String orderNo) {
@@ -234,9 +249,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             /**
              * @see TopicConfig#getVendoutTopic(String)
              */
-            mqttProducer.send(TopicConfig.getVendoutTopic(orderEntity.getInnerCode()),2,req);
+            mqttProducer.send(TopicConfig.getVendoutTopic(orderEntity.getInnerCode()), 2, req);
         } catch (JsonProcessingException e) {
-            log.error("send vendout req error.",e);
+            log.error("send vendout req error.", e);
         }
     }
 }
