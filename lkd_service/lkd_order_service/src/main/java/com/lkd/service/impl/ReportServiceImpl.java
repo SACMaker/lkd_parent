@@ -1,5 +1,6 @@
 package com.lkd.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.Strings;
@@ -14,6 +15,7 @@ import lombok.var;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -25,6 +27,7 @@ public class ReportServiceImpl implements ReportService {
 
     /**
      * 获取合作商分账汇总信息
+     *
      * @param pageIndex
      * @param pageSize
      * @param name
@@ -58,6 +61,39 @@ public class ReportServiceImpl implements ReportService {
                 .orderByDesc(OrderCollectEntity::getDate);
 
 
+        return Pager.build(orderCollectService.page(page, qw));
+    }
+
+    @Override
+    public List<OrderCollectEntity> getTop12(Integer partnerId) {
+        var qw = new LambdaQueryWrapper<OrderCollectEntity>();
+        qw.select(OrderCollectEntity::getDate, OrderCollectEntity::getNodeName, OrderCollectEntity::getOrderCount, OrderCollectEntity::getTotalBill)
+                .eq(OrderCollectEntity::getOwnerId, partnerId)
+                .orderByDesc(OrderCollectEntity::getDate)
+                .last("limit 12");
+
+        return orderCollectService.list(qw);
+    }
+
+    @Override
+    public Pager<OrderCollectEntity> search(Long pageIndex,
+                                            Long pageSize,
+                                            Integer partnerId,
+                                            String nodeName,
+                                            LocalDate start,
+                                            LocalDate end) {
+        var qw = new LambdaQueryWrapper<OrderCollectEntity>();
+        qw.select(OrderCollectEntity::getDate, OrderCollectEntity::getNodeName, OrderCollectEntity::getOrderCount, OrderCollectEntity::getTotalBill)
+                .eq(OrderCollectEntity::getOwnerId, partnerId);
+        if (!Strings.isNullOrEmpty(nodeName)) {
+            qw.like(OrderCollectEntity::getNodeName, nodeName);
+        }
+        if (start != null && end != null) {
+            qw.ge(OrderCollectEntity::getDate, start)
+                    .le(OrderCollectEntity::getDate, end);
+        }
+        qw.orderByDesc(OrderCollectEntity::getDate);
+        var page = new Page<OrderCollectEntity>(pageIndex, pageSize);
         return Pager.build(orderCollectService.page(page, qw));
     }
 }
