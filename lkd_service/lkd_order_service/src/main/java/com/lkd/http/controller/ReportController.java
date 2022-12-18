@@ -5,6 +5,7 @@ import com.lkd.entity.OrderCollectEntity;
 import com.lkd.http.viewModel.BillExportDataVO;
 import com.lkd.service.OrderService;
 import com.lkd.service.ReportService;
+import com.lkd.viewmodel.BarCharCollect;
 import com.lkd.viewmodel.Pager;
 import lombok.RequiredArgsConstructor;
 import lombok.var;
@@ -120,5 +121,19 @@ public class ReportController {
         response.setCharacterEncoding("utf-8");
         response.setHeader("Content-disposition", "attachment;filename=bill.xlsx");
         EasyExcel.write(response.getOutputStream(), BillExportDataVO.class).sheet("分账数据").doWrite(exportData);
+    }
+
+    /**
+     * 获取合作商一定日期范围的收益情况
+     * @param partnerId
+     * @param start
+     * @param end
+     * @return
+     */
+    @GetMapping("/collectReport/{partnerId}/{start}/{end}")
+    public BarCharCollect getCollectReport(@PathVariable Integer partnerId,
+                                           @PathVariable  @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+                                           @PathVariable  @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
+        return reportService.getCollect(partnerId,start,end);
     }
 }

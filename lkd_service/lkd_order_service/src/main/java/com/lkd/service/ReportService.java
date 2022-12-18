@@ -1,6 +1,7 @@
 package com.lkd.service;
 
 import com.lkd.entity.OrderCollectEntity;
+import com.lkd.viewmodel.BarCharCollect;
 import com.lkd.viewmodel.Pager;
 
 import java.time.LocalDate;
@@ -56,5 +57,13 @@ public interface ReportService {
      */
     List<OrderCollectEntity> getList( Integer partnerId, String nodeName, LocalDate start, LocalDate end );
 
+    /**
+     * 获取一定日期内合作商的收益统计
+     * @param partnerId
+     * @param start
+     * @param end
+     * @return
+     */
+    BarCharCollect getCollect(Integer partnerId, LocalDate start, LocalDate end);
 }
 
