@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 @Slf4j
 @RestController
@@ -149,8 +150,22 @@ public class SkuController {
      * @param file
      * @throws IOException
      */
-    @PostMapping("/upload")
+/*    @PostMapping("/upload")
     public void upload(@RequestParam("fileName") MultipartFile file) throws IOException, IOException {
         EasyExcel.read(file.getInputStream(), SkuImport.class, excelDataListener).sheet().doRead();
+    }*/
+
+
+    /**
+     * 上传商品解析
+     *
+     * @param file
+     * @throws IOException
+     */
+    @PostMapping("/upload")
+    public void upload(@RequestParam("fileName") MultipartFile file) throws IOException {
+        Function<List<SkuEntity>, Boolean> insertFunc = list -> skuService.saveBatch(list);//函数式接口
+        ExcelDataListener<SkuEntity, SkuImport> dataListener = new ExcelDataListener(insertFunc, SkuEntity.class);
+        EasyExcel.read(file.getInputStream(), SkuImport.class, dataListener).sheet().doRead();
     }
 }

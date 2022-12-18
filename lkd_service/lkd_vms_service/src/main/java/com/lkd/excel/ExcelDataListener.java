@@ -1,3 +1,4 @@
+/*
 package com.lkd.excel;
 
 import com.alibaba.excel.context.AnalysisContext;
@@ -11,10 +12,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+*/
 /**
  * ExcelDataListener
  * @param <E>
- */
+ *//*
+
+
 @Component
 public class ExcelDataListener<E> extends AnalysisEventListener<E> {
     private List<SkuEntity> list = Lists.newArrayList();
@@ -24,32 +28,37 @@ public class ExcelDataListener<E> extends AnalysisEventListener<E> {
 
     private static final int BATCH_COUNT = 500;//每批存储条数
 
-    /**
+    */
+/**
      * 提取数据
      *
      * @param e
      * @param analysisContext
-     */
+     *//*
+
     @Override
     public void invoke(E e, AnalysisContext analysisContext) {
         SkuEntity sku = new SkuEntity();
         BeanUtils.copyProperties(e, sku);
         list.add(sku);
         if (list.size() >= BATCH_COUNT) {
+            //等于500条就可以存进db,并清空list
             doAfterAllAnalysed(null);
         }
     }
 
 
-    /**
+    */
+/**
      * 读取完成
      *
      * @param analysisContext
-     */
+     *//*
+
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
 
         skuService.saveBatch(list);
         list.clear();
     }
-}
+}*/
