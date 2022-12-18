@@ -96,4 +96,25 @@ public class ReportServiceImpl implements ReportService {
         var page = new Page<OrderCollectEntity>(pageIndex, pageSize);
         return Pager.build(orderCollectService.page(page, qw));
     }
+
+    @Override
+    public List<OrderCollectEntity> getList(Integer partnerId, String nodeName, LocalDate start, LocalDate end) {
+
+        var qw = new LambdaQueryWrapper<OrderCollectEntity>();
+
+        qw.select(OrderCollectEntity::getDate, OrderCollectEntity::getNodeName,
+                        OrderCollectEntity::getOrderCount, OrderCollectEntity::getTotalBill)
+                .eq(OrderCollectEntity::getOwnerId, partnerId);
+
+        if (!Strings.isNullOrEmpty(nodeName)) {
+            qw.like(OrderCollectEntity::getNodeName, nodeName);
+        }
+        if (start != null && end != null) {
+            qw.ge(OrderCollectEntity::getDate, start)
+                    .le(OrderCollectEntity::getDate, end);
+        }
+        qw.orderByDesc(OrderCollectEntity::getDate);
+
+        return orderCollectService.list(qw);
+    }
 }

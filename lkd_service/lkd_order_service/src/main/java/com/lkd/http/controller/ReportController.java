@@ -1,15 +1,23 @@
 package com.lkd.http.controller;
 
+import com.alibaba.excel.EasyExcel;
 import com.lkd.entity.OrderCollectEntity;
+import com.lkd.http.viewModel.BillExportDataVO;
 import com.lkd.service.OrderService;
 import com.lkd.service.ReportService;
 import com.lkd.viewmodel.Pager;
 import lombok.RequiredArgsConstructor;
+import lombok.var;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.Date;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RequestMapping("/report")
@@ -81,5 +89,36 @@ public class ReportController {
                 nodeName,
                 start,
                 end);
+    }
+
+    /**
+     * 数据导出
+     *
+     * @param partnerId
+     * @param start
+     * @param end
+     */
+    @GetMapping("/export/{partnerId}/{start}/{end}")
+    public void export(
+            HttpServletResponse response,
+            @PathVariable Integer partnerId,
+            @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+            @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
+            @RequestParam(value = "nodeName", required = false, defaultValue = "") String nodeName) throws IOException {
+
+        var exportData = reportService.getList(partnerId, nodeName, start, end)
+                .stream().map(item -> {
+                    var vo = new BillExportDataVO();
+                    vo.setAmount(item.getTotalBill());
+                    vo.setDate(Date.from(item.getDate().atTime(0, 0).atZone(ZoneId.systemDefault()).toInstant()));
+                    vo.setOrderCount(item.getOrderCount());
+                    vo.setNodeName(item.getNodeName());
+                    return vo;
+                }).collect(Collectors.toList());
+
+        response.setContentType("application/vnd.ms-excel");
+        response.setCharacterEncoding("utf-8");
+        response.setHeader("Content-disposition", "attachment;filename=bill.xlsx");
+        EasyExcel.write(response.getOutputStream(), BillExportDataVO.class).sheet("分账数据").doWrite(exportData);
     }
 }

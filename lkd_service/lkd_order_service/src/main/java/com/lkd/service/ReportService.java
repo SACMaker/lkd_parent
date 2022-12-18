@@ -45,4 +45,16 @@ public interface ReportService {
                                      String nodeName,
                                      LocalDate start,
                                      LocalDate end);
+
+    /**
+     * 分账数据列表
+     * @param partnerId
+     * @param nodeName
+     * @param start
+     * @param end
+     * @return
+     */
+    List<OrderCollectEntity> getList( Integer partnerId, String nodeName, LocalDate start, LocalDate end );
+
 }
+
