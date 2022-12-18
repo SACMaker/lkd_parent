@@ -138,6 +138,7 @@ public class ReportServiceImpl implements ReportService {
 
         var result = new BarCharCollect();
 
+        //LocalDate的datesUntil方法：用户希望返回两个给定端点之间的日期流
         start.datesUntil(end.plusDays(1), Period.ofDays(1))
                 .forEach(date -> {
                     result.getXAxis().add(date.format(DateTimeFormatter.ISO_LOCAL_DATE));

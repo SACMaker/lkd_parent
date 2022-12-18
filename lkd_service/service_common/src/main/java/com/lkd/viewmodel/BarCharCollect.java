@@ -7,6 +7,9 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ *用于封装EChars的曲线图实体类
+ */
 @Data
 public class BarCharCollect implements Serializable {
 
