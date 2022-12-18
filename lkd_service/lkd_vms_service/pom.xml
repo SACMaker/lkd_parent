@@ -24,6 +24,12 @@
             <version>7.1.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>2.2.6</version>
+        </dependency>
+
         <!--es相关依赖-->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>

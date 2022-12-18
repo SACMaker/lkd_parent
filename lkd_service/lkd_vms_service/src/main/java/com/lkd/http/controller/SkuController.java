@@ -1,10 +1,13 @@
 package com.lkd.http.controller;
 
+import com.alibaba.excel.EasyExcel;
 import com.lkd.entity.SkuClassEntity;
 import com.lkd.entity.SkuEntity;
+import com.lkd.excel.ExcelDataListener;
 import com.lkd.exception.LogicException;
 import com.lkd.feignService.OrderService;
 import com.lkd.file.FileManager;
+import com.lkd.http.viewModel.SkuImport;
 import com.lkd.service.SkuService;
 import com.lkd.viewmodel.Pager;
 import com.lkd.viewmodel.SkuViewModel;
@@ -13,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 @Slf4j
@@ -26,6 +30,8 @@ public class SkuController {
     private FileManager fileManager;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private ExcelDataListener excelDataListener;
 
     /**
      * 根据skuId查询
@@ -137,5 +143,14 @@ public class SkuController {
                 .collect(Collectors.toList());
     }
 
-
+    /**
+     * 上传商品解析
+     *
+     * @param file
+     * @throws IOException
+     */
+    @PostMapping("/upload")
+    public void upload(@RequestParam("fileName") MultipartFile file) throws IOException, IOException {
+        EasyExcel.read(file.getInputStream(), SkuImport.class, excelDataListener).sheet().doRead();
+    }
 }
