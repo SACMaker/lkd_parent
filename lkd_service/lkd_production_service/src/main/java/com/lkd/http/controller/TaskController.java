@@ -11,6 +11,7 @@ import com.lkd.service.TaskDetailsService;
 import com.lkd.service.TaskService;
 import com.lkd.service.TaskTypeService;
 import com.lkd.viewmodel.Pager;
+import com.lkd.viewmodel.UserWork;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -195,5 +196,20 @@ public class TaskController extends BaseController {
     public List<TaskReportInfo> getTaskReportInfo(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
                                                   @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end) {
         return taskService.getTaskReportInfo(start, end);
+    }
+
+    /**
+     * 获取用户工作量详情
+     * @param userId
+     * @param start
+     * @param end
+     * @return
+     */
+    @GetMapping("/userWork")
+    public UserWork getUserWork(@RequestParam Integer userId,
+                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  LocalDateTime start,
+                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  LocalDateTime end){
+
+        return taskService.getUserWork(userId,start,end);
     }
 }

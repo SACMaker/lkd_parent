@@ -8,6 +8,7 @@ import com.lkd.http.viewModel.CancelTaskViewModel;
 import com.lkd.http.viewModel.TaskReportInfo;
 import com.lkd.http.viewModel.TaskViewModel;
 import com.lkd.viewmodel.Pager;
+import com.lkd.viewmodel.UserWork;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -102,4 +103,13 @@ public interface TaskService extends IService<TaskEntity> {
      * @return
      */
     List<TaskReportInfo> getTaskReportInfo(LocalDateTime start, LocalDateTime end);
+
+    /**
+     * 获取用户工作量详情
+     * @param userId
+     * @param start
+     * @param end
+     * @return
+     */
+    UserWork getUserWork( Integer userId,LocalDateTime start,LocalDateTime end);
 }

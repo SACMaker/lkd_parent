@@ -27,6 +27,7 @@ import com.lkd.service.TaskService;
 import com.lkd.service.TaskStatusTypeService;
 import com.lkd.viewmodel.Pager;
 import com.lkd.viewmodel.UserViewModel;
+import com.lkd.viewmodel.UserWork;
 import com.lkd.viewmodel.VendingMachineViewModel;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
@@ -452,6 +453,87 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
 
         return result;
     }
+
+    @Override
+    public UserWork getUserWork(Integer userId, LocalDateTime start, LocalDateTime end) {
+
+        var userWork = new UserWork();
+        userWork.setUserId(userId);
+
+        //获取用户完成工单数
+        var workCountFuture = CompletableFuture.supplyAsync(() -> this.getCountByUserId(userId, VMSystem.TASK_STATUS_FINISH, start, end))
+                //r=result e=exception
+                .whenComplete((r, e) -> {
+                    if (e != null) {
+                        userWork.setWorkCount(0);
+                        log.error("user work error", e);
+                    } else {
+                        userWork.setWorkCount(r);
+                    }
+                });
+        //获取用户总工单数
+        var totalFuture = CompletableFuture.supplyAsync(() -> this.getCountByUserId(userId, null, start, end))
+                .whenComplete((r, e) -> {
+                    if (e != null) {
+                        userWork.setTotal(0);
+                        log.error("user work error", e);
+                    } else {
+                        userWork.setTotal(r);
+                    }
+                });
+        //获取用户拒绝工单数
+        var cancelCountFuture = CompletableFuture.supplyAsync(() -> this.getCountByUserId(userId, VMSystem.TASK_STATUS_CANCEL, start, end))
+                .whenComplete((r, e) -> {
+                    if (e != null) {
+                        userWork.setCancelCount(0);
+                        log.error("user work error", e);
+                    } else {
+                        userWork.setCancelCount(r);
+                    }
+                });
+        //获取用户进行中工单数
+        var progressTotalFuture = CompletableFuture.supplyAsync(() -> this.getCountByUserId(userId, VMSystem.TASK_STATUS_PROGRESS, start, end))
+                .whenComplete((r, e) -> {
+                    if (e != null) {
+                        userWork.setProgressTotal(0);
+                        log.error("user work error", e);
+                    } else {
+                        userWork.setProgressTotal(r);
+                    }
+                });
+
+        //并发执行
+        CompletableFuture.allOf(workCountFuture,
+                totalFuture, cancelCountFuture,
+                progressTotalFuture).join();
+
+        return userWork;
+    }
+
+    /**
+     * 根据用户id、工单状态查询工单数
+     *
+     * @param userId
+     * @param taskStatus
+     * @param start
+     * @param end
+     * @return
+     */
+    private Integer getCountByUserId(Integer userId, Integer taskStatus, LocalDateTime start, LocalDateTime end) {
+
+        var qw = new LambdaQueryWrapper<TaskEntity>();
+        qw.ge(TaskEntity::getUpdateTime, start)
+                .le(TaskEntity::getUpdateTime, end);
+
+        if (taskStatus != null) {
+            qw.eq(TaskEntity::getTaskStatus, taskStatus);//匹配订单状态
+        }
+        if (userId != null) {
+            qw.eq(TaskEntity::getAssignorId, userId);//匹配用户id
+        }
+        return this.count(qw);
+    }
+
 
     /**
      * 统计工单数量

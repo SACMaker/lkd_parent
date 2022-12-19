@@ -2,39 +2,26 @@ package com.lkd.viewmodel;
 
 import lombok.Data;
 
-import java.io.Serializable;
 
-/**
- * 用户工作量
- */
 @Data
-public class UserWork implements Serializable {
-    /**
-     * 用户Id
-     */
-    private Integer userId;
-    /**
-     * 用户名
-     */
-    private String userName;
+public class UserWork {
 
-    /**
-     * 用户角色名
-     */
-    private String roleName;
 
-    /**
-     * 完成工单数
-     */
-    private Integer workCount;
+    private Integer userId;//用户id
 
-    /**
-     * 当日进行中的工单
-     */
-    private Integer progressTotal;
+    private String userName;//用户名称
 
-    /**
-     * 拒绝工单数
-     */
-    private Integer cancelCount;
+    private String roleName;//角色名称
+
+    private String mobile;//手机号
+
+    private Integer workCount;//完成工单数
+
+    private Integer progressTotal;//进行中工单数
+
+    private Integer cancelCount;//取消工单数
+
+    private Integer total;//工单总数
+
+
 }
