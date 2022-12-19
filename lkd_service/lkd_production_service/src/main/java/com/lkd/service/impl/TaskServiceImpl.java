@@ -20,6 +20,7 @@ import com.lkd.exception.LogicException;
 import com.lkd.feignService.UserService;
 import com.lkd.feignService.VMService;
 import com.lkd.http.viewModel.CancelTaskViewModel;
+import com.lkd.http.viewModel.TaskReportInfo;
 import com.lkd.http.viewModel.TaskViewModel;
 import com.lkd.service.TaskDetailsService;
 import com.lkd.service.TaskService;
@@ -28,6 +29,7 @@ import com.lkd.viewmodel.Pager;
 import com.lkd.viewmodel.UserViewModel;
 import com.lkd.viewmodel.VendingMachineViewModel;
 import lombok.extern.slf4j.Slf4j;
+import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,11 +38,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -370,9 +374,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         if (isRepair) { //如果是维修工单
             roleCode = "1003";
         }
-        String key = VMSystem.REGION_TASK_KEY_PREF
-                + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-                + "." + regionId + "." + roleCode;
+        String key = VMSystem.REGION_TASK_KEY_PREF + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "." + regionId + "." + roleCode;
         //从小到大取0和1的范围的元素
         Set<Object> set = redisTemplate.opsForZSet().range(key, 0, 1);
         if (set == null || set.isEmpty()) {
@@ -380,6 +382,101 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         }
         //返回人员id
         return (Integer) set.stream().collect(Collectors.toList()).get(0);
+    }
+
+    /**
+     * 使用CompletableFuture进行并发异步编程获取汇总数据
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    @Override
+    public List<TaskReportInfo> getTaskReportInfo(LocalDateTime start, LocalDateTime end) {
+        //运营工单总数
+        var supplyTotalFuture = CompletableFuture.supplyAsync(() -> this.taskCount(start, end, false, null));
+        //运维工单总数
+        var repairTotalFuture = CompletableFuture.supplyAsync(() -> this.taskCount(start, end, true, null));
+        //完成的运营工单数
+        var completedSupplyFuture = CompletableFuture.supplyAsync(() -> this.taskCount(start, end, false, VMSystem.TASK_STATUS_FINISH));
+        //完成的运维工单数
+        var completedRepairFuture = CompletableFuture.supplyAsync(() -> this.taskCount(start, end, true, VMSystem.TASK_STATUS_FINISH));
+        //拒绝的运营工单数
+        var cancelSupplyFuture = CompletableFuture.supplyAsync(() -> this.taskCount(start, end, false, VMSystem.TASK_STATUS_CANCEL));
+        //拒绝的运维工单数
+        var cancelRepairFuture = CompletableFuture.supplyAsync(() -> this.taskCount(start, end, true, VMSystem.TASK_STATUS_CANCEL));
+        //运营人员数量
+        var operatorCountFuture = CompletableFuture.supplyAsync(() -> userService.getOperatorCount());
+        //运营人员数量
+        var repairerCountFuture = CompletableFuture.supplyAsync(() -> userService.getRepairerCount());
+
+        //并行处理
+        CompletableFuture.allOf(supplyTotalFuture,//allOf返回一个新的 CompletableFuture
+                repairTotalFuture,
+                completedSupplyFuture,
+                completedRepairFuture,
+                cancelSupplyFuture,
+                cancelRepairFuture,
+                operatorCountFuture,
+                repairerCountFuture)
+                .join();//join完成时返回结果值
+
+        List<TaskReportInfo> result = Lists.newArrayList();
+        //构建返回的运营/运维VO
+        var supplyTaskInfo = new TaskReportInfo();//运营
+        var repairTaskInfo = new TaskReportInfo();//运维
+
+        try {
+            //分别处理运营/运维的dto to vo
+            //运营
+            supplyTaskInfo.setTotal(supplyTotalFuture.get());
+            supplyTaskInfo.setCancelTotal(cancelSupplyFuture.get());
+            supplyTaskInfo.setCompletedTotal(completedSupplyFuture.get());
+            supplyTaskInfo.setRepair(false);
+            supplyTaskInfo.setWorkerCount(operatorCountFuture.get());
+            result.add(supplyTaskInfo);
+
+            //运维
+            repairTaskInfo.setTotal(repairTotalFuture.get());
+            repairTaskInfo.setCancelTotal(cancelRepairFuture.get());
+            repairTaskInfo.setCompletedTotal(completedRepairFuture.get());
+            repairTaskInfo.setRepair(true);
+            repairTaskInfo.setWorkerCount(repairerCountFuture.get());
+
+            result.add(repairTaskInfo);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("构建工单统计数据失败", e);
+        }
+
+        return result;
+    }
+
+    /**
+     * 统计工单数量
+     *
+     * @param start
+     * @param end
+     * @param repair
+     * @param taskStatus
+     * @return
+     */
+    private int taskCount(LocalDateTime start, LocalDateTime end, Boolean repair, Integer taskStatus) {
+
+        LambdaQueryWrapper<TaskEntity> qw = new LambdaQueryWrapper<>();
+        qw.ge(TaskEntity::getUpdateTime, start)
+                .le(TaskEntity::getUpdateTime, end);//时间段
+        if (taskStatus != null) {
+            qw.eq(TaskEntity::getTaskStatus, taskStatus);//匹配工单状态
+        }
+        //匹配工单类型
+        if (repair) {//如果是运维
+            qw.ne(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
+        } else {
+            qw.eq(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
+        }
+        return this.count(qw);
     }
 
 

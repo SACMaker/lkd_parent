@@ -4,6 +4,7 @@ import com.lkd.entity.*;
 import com.lkd.exception.LogicException;
 import com.lkd.http.viewModel.AutoSupplyConfigViewModel;
 import com.lkd.http.viewModel.CancelTaskViewModel;
+import com.lkd.http.viewModel.TaskReportInfo;
 import com.lkd.http.viewModel.TaskViewModel;
 import com.lkd.service.JobService;
 import com.lkd.service.TaskDetailsService;
@@ -11,8 +12,10 @@ import com.lkd.service.TaskService;
 import com.lkd.service.TaskTypeService;
 import com.lkd.viewmodel.Pager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -181,5 +184,16 @@ public class TaskController extends BaseController {
         if (jobEntity == null) return 0;
 
         return jobEntity.getAlertValue();
+    }
+
+    /**
+     * 获取当时工单汇总信息
+     *
+     * @return
+     */
+    @GetMapping("/taskReportInfo/{start}/{end}")
+    public List<TaskReportInfo> getTaskReportInfo(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                                                  @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end) {
+        return taskService.getTaskReportInfo(start, end);
     }
 }

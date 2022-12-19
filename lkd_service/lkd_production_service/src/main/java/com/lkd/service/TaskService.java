@@ -5,9 +5,11 @@ import com.lkd.entity.TaskEntity;
 import com.lkd.entity.TaskStatusTypeEntity;
 import com.lkd.exception.LogicException;
 import com.lkd.http.viewModel.CancelTaskViewModel;
+import com.lkd.http.viewModel.TaskReportInfo;
 import com.lkd.http.viewModel.TaskViewModel;
 import com.lkd.viewmodel.Pager;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /*在mbp中服务层接口除了提供mbp的服务层接口,也是自定义接口的地方,在其对应的实现类实现*/
@@ -85,9 +87,19 @@ public interface TaskService extends IService<TaskEntity> {
 
     /**
      * 获取同一天内分配的工单最少的人
+     *
      * @param regionId 区域id
      * @param isRepair 是否是维修工单
      * @return
      */
     Integer getLeastUser(Integer regionId, Boolean isRepair);
+
+    /**
+     * 获取工单的统计情况
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    List<TaskReportInfo> getTaskReportInfo(LocalDateTime start, LocalDateTime end);
 }

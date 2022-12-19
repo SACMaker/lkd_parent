@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 工单基本统计情况
+ * 工单基本统计情况vo
  */
 @Data
 public class TaskReportInfo implements Serializable {
