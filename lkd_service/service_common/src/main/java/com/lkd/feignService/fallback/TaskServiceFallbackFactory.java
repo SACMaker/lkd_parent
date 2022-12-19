@@ -6,8 +6,6 @@ import feign.hystrix.FallbackFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 @Slf4j
 public class TaskServiceFallbackFactory implements FallbackFactory<TaskService> {
@@ -22,13 +20,12 @@ public class TaskServiceFallbackFactory implements FallbackFactory<TaskService> 
             }
 
             @Override
-            public UserWork getUserWork(Integer userId, LocalDateTime start, LocalDateTime end) {
+            public UserWork getUserWork(Integer userId, String start, String end) {
                 UserWork userWork = new UserWork();
                 userWork.setCancelCount(0);
                 userWork.setProgressTotal(0);
                 userWork.setWorkCount(0);
                 userWork.setUserId(userId);
-
                 return userWork;
             }
         };

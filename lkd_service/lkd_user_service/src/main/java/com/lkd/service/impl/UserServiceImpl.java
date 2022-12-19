@@ -7,11 +7,10 @@ import com.google.common.base.Strings;
 import com.lkd.common.VMSystem;
 import com.lkd.dao.UserDao;
 import com.lkd.entity.UserEntity;
-import com.lkd.exception.LogicException;
+import com.lkd.feignService.TaskService;
 import com.lkd.http.view.TokenObject;
 import com.lkd.http.viewModel.LoginReq;
 import com.lkd.http.viewModel.LoginResp;
-import com.lkd.redis.RedisUtils;
 import com.lkd.service.PartnerService;
 import com.lkd.service.UserService;
 import com.lkd.sms.SmsSender;
@@ -19,6 +18,7 @@ import com.lkd.utils.BCrypt;
 import com.lkd.utils.JWTUtil;
 import com.lkd.viewmodel.Pager;
 import com.lkd.viewmodel.UserViewModel;
+import com.lkd.viewmodel.UserWork;
 import lombok.var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,24 +27,29 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements UserService{
+public class UserServiceImpl extends ServiceImpl<UserDao, UserEntity> implements UserService {
     @Autowired
-    private RedisTemplate<String,String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     @Autowired
     private PartnerService partnerService;
+    @Autowired
+    private TaskService taskService;
 
     @Autowired
     private SmsSender smsSender;
+
     @Override
     public Integer getOperatorCount() {
         LambdaQueryWrapper<UserEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(UserEntity::getRoleCode,"1002");
+        wrapper.eq(UserEntity::getRoleCode, "1002");
 
         return this.count(wrapper);
     }
@@ -258,10 +263,72 @@ public class UserServiceImpl extends ServiceImpl<UserDao,UserEntity> implements 
         QueryWrapper<UserEntity> qw = new QueryWrapper<>();
         qw.lambda().eq(UserEntity::getMobile, req.getMobile());
         UserEntity userEntity = this.getOne(qw);
-        if (userEntity == null){
+        if (userEntity == null) {
             resp.setMsg("不存在该账户");
             return resp;
         }
-        return okResp( userEntity,VMSystem.LOGIN_EMP );
+        return okResp(userEntity, VMSystem.LOGIN_EMP);
+    }
+
+    @Override
+    public Pager<UserWork> searchUserWork(Long pageIndex, Long pageSize, String userName, Integer roleId, Boolean isRepair) {
+        //查询用户分页
+        var userPager = this.findPage(pageIndex, pageSize, userName, roleId, isRepair);
+
+        //工作量列表
+        var items = userPager.getCurrentPageRecords()
+                .stream().map(u -> {
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime start = LocalDateTime.of(now.getYear(), now.getMonth(), 1, 0, 0, 0);
+
+                    UserWork userWork = taskService.getUserWork(u.getId(),
+                            start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                            now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+                    userWork.setUserName(u.getUserName());
+                    userWork.setRoleName(u.getRole().getRoleName());
+                    userWork.setMobile(u.getMobile());
+
+                    return userWork;
+                }).collect(Collectors.toList());
+
+        //封装分页对象
+
+        Pager<UserWork> result = Pager.buildEmpty();
+        result.setPageIndex(userPager.getPageIndex());
+        result.setPageSize(userPager.getPageSize());
+        result.setTotalCount(userPager.getTotalCount());
+        result.setTotalPage(userPager.getTotalPage());
+        result.setCurrentPageRecords(items);
+
+        return result;
+    }
+
+    @Override
+    public Pager<UserEntity> findPage(long pageIndex, long pageSize, String userName,Integer roleId,Boolean isRepair) {
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<UserEntity> page =
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(pageIndex,pageSize);
+
+        LambdaQueryWrapper<UserEntity> wrapper = new LambdaQueryWrapper<>();
+        if(!Strings.isNullOrEmpty(userName)){
+            wrapper.like(UserEntity::getUserName,userName);
+        }
+        if(roleId != null && roleId > 0){
+            wrapper.eq(UserEntity::getRoleId,roleId);
+        }
+        if(isRepair != null && isRepair == true){
+            wrapper.eq(UserEntity::getRoleCode,"1003");
+        }
+        if(isRepair != null && isRepair == false){
+            wrapper.eq(UserEntity::getRoleCode,"1002");
+        }
+        wrapper.ne(UserEntity::getRoleId,1);
+        this.page(page,wrapper);
+        page.getRecords().forEach(u->{
+            u.setPassword("");
+            u.setSecret("");
+        });
+
+        return Pager.build(page);
     }
 }

@@ -7,7 +7,6 @@ import com.lkd.feignService.VMService;
 import com.lkd.http.viewModel.LoginReq;
 import com.lkd.http.viewModel.LoginResp;
 import com.lkd.http.viewModel.UserReq;
-import com.lkd.redis.RedisUtils;
 import com.lkd.service.RoleService;
 import com.lkd.service.UserService;
 import com.lkd.viewmodel.Pager;
@@ -16,9 +15,9 @@ import com.lkd.viewmodel.UserWork;
 import com.lkd.viewmodel.VendingMachineViewModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
@@ -29,9 +28,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
@@ -250,6 +249,7 @@ public class UserController {
 
     /**
      * 搜索用户工作量列表
+     *
      * @param pageIndex
      * @param pageSize
      * @param userName
@@ -258,33 +258,34 @@ public class UserController {
      */
     @GetMapping("/searchUserWork")
     public Pager<UserWork> searchUserWork(
-            @RequestParam(value = "pageIndex",required = false,defaultValue = "1") long pageIndex,
-            @RequestParam(value = "pageSize",required = false,defaultValue = "10") long pageSize,
-            @RequestParam(value = "userName",required = false,defaultValue = "") String userName,
-            @RequestParam(value = "roleId",required = false,defaultValue = "0") Integer roleId){
-        var userPager = userService.findPage( pageIndex,pageSize,userName,roleId);
-        var items = userPager
-                .getCurrentPageRecords()
-                .stream()
-                .map(u->{
-                    UserWork userWork = taskService.getUserWork(u.getId(), LocalDateTime.now().toLocalDate().atStartOfDay(),LocalDateTime.now());
-                    userWork.setRoleName(u.getRole().getRoleName());
-                    return userWork;
-                })
-                .collect(Collectors.toList());
+            @RequestParam(value = "pageIndex", required = false, defaultValue = "1") long pageIndex,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") long pageSize,
+            @RequestParam(value = "userName", required = false, defaultValue = "") String userName,
+            @RequestParam(value = "roleId", required = false, defaultValue = "0") Integer roleId,
+            @RequestParam(value = "isRepair", required = false, defaultValue = "") Boolean isRepair) {
 
-        Pager<UserWork> result = Pager.buildEmpty();
-        result.setPageIndex(userPager.getPageIndex());
-        result.setCurrentPageRecords(items);
-        result.setPageSize(userPager.getPageSize());
-        result.setTotalCount(userPager.getTotalCount());
-        result.setTotalPage(userPager.getTotalPage());
-
-        return result;
-
+        return userService.searchUserWork(pageIndex, pageSize, userName, roleId, isRepair);
     }
 
-    private UserViewModel convertToVM(UserEntity userEntity){
+    /**
+     * 获取用户工作量详情
+     *
+     * @param userId
+     * @param start
+     * @param end
+     * @return
+     */
+    @GetMapping("/userWork")
+    public UserWork getUserWork(@RequestParam Integer userId,
+                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end) {
+        //远程调用工单服务
+        return taskService.getUserWork(userId, start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    }
+
+
+    private UserViewModel convertToVM(UserEntity userEntity) {
         UserViewModel userViewModel = new UserViewModel();
         userViewModel.setMobile(userEntity.getMobile());
         userViewModel.setLoginName(userEntity.getLoginName());
