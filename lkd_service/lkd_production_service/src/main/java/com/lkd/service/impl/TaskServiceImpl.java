@@ -646,4 +646,36 @@ public class TaskServiceImpl extends ServiceImpl<TaskDao, TaskEntity> implements
         //原子增
         redisTemplate.opsForZSet().incrementScore(key, taskEntity.getAssignorId(), score);
     }
+
+    @Override
+    public List<UserWork> getUserWorkTop10(LocalDate start, LocalDate end, Boolean isRepair, Long regionId) {
+        var qw = new QueryWrapper<TaskEntity>();
+        qw
+                .select("count(user_id) as user_id,user_name")
+                .lambda()
+                .ge(TaskEntity::getUpdateTime, start)
+                .le(TaskEntity::getUpdateTime, end)
+                .eq(TaskEntity::getTaskStatus, VMSystem.TASK_STATUS_FINISH)
+                .groupBy(TaskEntity::getUserName)
+                .orderByDesc(TaskEntity::getUserId)
+                .last("limit 10");
+        if (regionId > 0) {
+            qw.lambda().eq(TaskEntity::getRegionId, regionId);
+        }
+        if (isRepair) {
+            qw.lambda().ne(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
+        } else {
+            qw.lambda().eq(TaskEntity::getProductTypeId, VMSystem.TASK_TYPE_SUPPLY);
+        }
+        var result = this
+                .list(qw)
+                .stream()
+                .map(t -> {
+                    var userWork = new UserWork();
+                    userWork.setUserName(t.getUserName());
+                    userWork.setWorkCount(t.getUserId());
+                    return userWork;
+                }).collect(Collectors.toList());
+        return result;
+    }
 }

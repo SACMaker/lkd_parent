@@ -10,6 +10,7 @@ import com.lkd.http.viewModel.TaskViewModel;
 import com.lkd.viewmodel.Pager;
 import com.lkd.viewmodel.UserWork;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -106,10 +107,20 @@ public interface TaskService extends IService<TaskEntity> {
 
     /**
      * 获取用户工作量详情
+     *
      * @param userId
      * @param start
      * @param end
      * @return
      */
-    UserWork getUserWork( Integer userId,LocalDateTime start,LocalDateTime end);
+    UserWork getUserWork(Integer userId, LocalDateTime start, LocalDateTime end);
+
+    /**
+     * 获取排名前10的工作量
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    List<UserWork> getUserWorkTop10(LocalDate start, LocalDate end, Boolean isRepair, Long regionId);
 }

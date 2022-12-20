@@ -224,4 +224,22 @@ public class TaskController extends BaseController {
     public List<TaskCollectEntity> getTaskCollectReport(@PathVariable String start, @PathVariable String end) {
         return taskCollectService.getTaskReport(LocalDate.parse(start, DateTimeFormatter.ISO_LOCAL_DATE), LocalDate.parse(end, DateTimeFormatter.ISO_LOCAL_DATE));
     }
+
+    /**
+     * 获取人员排名
+     * @param start
+     * @param end
+     * @param isRepair
+     * @return
+     */
+    @GetMapping("/userWorkTop10/{start}/{end}/{isRepair}/{regionId}")
+    public List<UserWork> getUserWorkTop10(@PathVariable String start, @PathVariable String end, @PathVariable Boolean isRepair,@PathVariable String regionId){
+        return taskService.getUserWorkTop10(
+                LocalDate.parse(start,DateTimeFormatter.ISO_LOCAL_DATE),
+                LocalDate.parse(end,DateTimeFormatter.ISO_LOCAL_DATE),
+                isRepair,
+                Long.valueOf(regionId));
+    }
+
+
 }
