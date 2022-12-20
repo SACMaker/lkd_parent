@@ -132,8 +132,23 @@ public class ReportController {
      */
     @GetMapping("/collectReport/{partnerId}/{start}/{end}")
     public BarCharCollect getCollectReport(@PathVariable Integer partnerId,
-                                           @PathVariable  @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
-                                           @PathVariable  @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end){
-        return reportService.getCollect(partnerId,start,end);
+                                           @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+                                           @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
+        return reportService.getCollect(partnerId, start, end);
+    }
+
+    /**
+     * 获取销售额统计
+     *
+     * @param collectType
+     * @param start
+     * @param end
+     * @return
+     */
+    @GetMapping("/amountCollect/{collectType}/{start}/{end}")
+    public BarCharCollect getAmountCollect(@PathVariable Integer collectType,
+                                           @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
+                                           @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
+        return reportService.getAmountCollect(collectType, start, end);
     }
 }

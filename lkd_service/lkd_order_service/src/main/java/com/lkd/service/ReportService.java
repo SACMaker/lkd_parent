@@ -65,5 +65,14 @@ public interface ReportService {
      * @return
      */
     BarCharCollect getCollect(Integer partnerId, LocalDate start, LocalDate end);
+
+    /**
+     * 获取一定日期内的销售额统计
+     * @param start
+     * @param end
+     * @return
+     */
+
+    BarCharCollect getAmountCollect(Integer collectType,LocalDate start,LocalDate end);
 }
 

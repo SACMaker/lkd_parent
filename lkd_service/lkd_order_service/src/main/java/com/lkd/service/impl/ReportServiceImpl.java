@@ -151,4 +151,43 @@ public class ReportServiceImpl implements ReportService {
 
         return result;
     }
+
+    @Override
+    public BarCharCollect getAmountCollect(Integer collectType,LocalDate start, LocalDate end) {
+
+        //日期处理格式
+        var formatter = collectType==2?DateTimeFormatter.ofPattern("yyyy-MM"):DateTimeFormatter.ISO_LOCAL_DATE ;
+        //日期列
+        var dateColumn=   collectType==2?"min(date) as date":"date";
+        //分组列
+        var groupColumn= collectType==2?"MONTH(date)":"date";
+        //周期
+        var period=  collectType==2?Period.ofMonths(1):Period.ofDays(1);
+
+        var qw = new QueryWrapper<OrderCollectEntity>();
+        qw.select("IFNULL(sum(order_total_money),0) as order_total_money",dateColumn)
+                .groupBy(groupColumn)
+                .lambda()
+                .ge(OrderCollectEntity::getDate,start)
+                .le(OrderCollectEntity::getDate,end)
+                .orderByAsc(OrderCollectEntity::getDate);
+        //构建一个key为日期维度，value为销售额的map
+        var mapCollect = orderCollectService
+                .list(qw)
+                .stream()
+                .collect(Collectors.toMap(o-> o.getDate().format(formatter),OrderCollectEntity::getOrderTotalMoney));
+        var result = new BarCharCollect();
+        //以从开始日期到结束日期为范围，日期统计类型为维度构建曲线图数据
+        start.datesUntil(end.plusDays(1), period)
+                .forEach(date->{
+                    String key  = date.format(formatter);
+                    result.getXAxis().add(key);
+                    if(mapCollect.containsKey(key)){
+                        result.getSeries().add(mapCollect.get(key));
+                    }else {
+                        result.getSeries().add(0);
+                    }
+                });
+        return result;
+    }
 }
