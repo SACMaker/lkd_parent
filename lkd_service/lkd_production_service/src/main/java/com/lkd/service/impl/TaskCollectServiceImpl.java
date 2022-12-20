@@ -15,8 +15,7 @@ public class TaskCollectServiceImpl extends ServiceImpl<TaskCollectDao, TaskColl
     @Override
     public List<TaskCollectEntity> getTaskReport(LocalDate start, LocalDate end) {
         QueryWrapper<TaskCollectEntity> qw = new QueryWrapper<>();
-        qw
-                .lambda()
+        qw.lambda()
                 .ge(TaskCollectEntity::getCollectDate,start)
                 .le(TaskCollectEntity::getCollectDate,end)
                 .orderByAsc(TaskCollectEntity::getCollectDate);

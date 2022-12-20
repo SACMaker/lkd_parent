@@ -6,17 +6,16 @@ import com.lkd.http.viewModel.AutoSupplyConfigViewModel;
 import com.lkd.http.viewModel.CancelTaskViewModel;
 import com.lkd.http.viewModel.TaskReportInfo;
 import com.lkd.http.viewModel.TaskViewModel;
-import com.lkd.service.JobService;
-import com.lkd.service.TaskDetailsService;
-import com.lkd.service.TaskService;
-import com.lkd.service.TaskTypeService;
+import com.lkd.service.*;
 import com.lkd.viewmodel.Pager;
 import com.lkd.viewmodel.UserWork;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -30,6 +29,8 @@ public class TaskController extends BaseController {
     private TaskTypeService taskTypeService;
     @Autowired
     private JobService jobService;
+    @Autowired
+    private TaskCollectService taskCollectService;
 
     /**
      * 根据taskId查询
@@ -200,16 +201,27 @@ public class TaskController extends BaseController {
 
     /**
      * 获取用户工作量详情
+     *
      * @param userId
      * @param start
      * @param end
      * @return
      */
     @GetMapping("/userWork")
-    public UserWork getUserWork(@RequestParam Integer userId,
-                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  LocalDateTime start,
-                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")  LocalDateTime end){
+    public UserWork getUserWork(@RequestParam Integer userId, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end) {
 
-        return taskService.getUserWork(userId,start,end);
+        return taskService.getUserWork(userId, start, end);
+    }
+
+    /**
+     * 获取工单报表
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    @GetMapping("/collectReport/{start}/{end}")
+    public List<TaskCollectEntity> getTaskCollectReport(@PathVariable String start, @PathVariable String end) {
+        return taskCollectService.getTaskReport(LocalDate.parse(start, DateTimeFormatter.ISO_LOCAL_DATE), LocalDate.parse(end, DateTimeFormatter.ISO_LOCAL_DATE));
     }
 }
